@@ -28,18 +28,14 @@ interface ToastState extends Omit<ToastProps, "onDismiss"> {
 const showAlert = (title: string, message: string) =>
   Alert.alert(title, message);
 
-export default function LoginScreen() {
+export default function ForgotPasswordScreen() {
   const router = useRouter();
   const scrollViewRef = useRef<ScrollView>(null);
   const emailInputRef = useRef<View>(null);
-  const passwordInputRef = useRef<View>(null);
 
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [showPw, setShowPw] = useState(false);
   const [loading, setLoading] = useState(false);
   const [isEmailFocused, setIsEmailFocused] = useState(false);
-  const [isPwdFocused, setIsPwdFocused] = useState(false);
   const [dimensions, setDimensions] = useState(Dimensions.get("window"));
   const [keyboardHeight, setKeyboardHeight] = useState(0);
   const [toasts, setToasts] = useState<ToastState[]>([]);
@@ -127,17 +123,6 @@ export default function LoginScreen() {
         * {
           -webkit-tap-highlight-color: transparent;
         }
-        
-        /* Remove password reveal eye icon (Edge, Chrome, Safari) */
-        input[type="password"]::-ms-reveal,
-        input[type="password"]::-ms-clear {
-          display: none !important;
-        }
-        
-        input[type="password"]::-webkit-credentials-auto-fill-button,
-        input[type="password"]::-webkit-textfield-decoration-container {
-          display: none !important;
-        }
       `;
       document.head.appendChild(style);
       return () => {
@@ -165,13 +150,9 @@ export default function LoginScreen() {
     setToasts((prev) => prev.filter((toast) => toast.id !== id));
   };
 
-  const onSignIn = async () => {
-    if (!email.trim() || !password.trim()) {
-      showToast(
-        "error",
-        "Missing info",
-        "Please enter both email and password."
-      );
+  const onSendResetLink = async () => {
+    if (!email.trim()) {
+      showToast("error", "Missing info", "Please enter your email address.");
       return;
     }
 
@@ -186,33 +167,33 @@ export default function LoginScreen() {
 
     setLoading(true);
     try {
-      const response = await auth.signIn({
-        email: email.trim(),
-        password: password,
-      });
+      const response = await auth.sendPasswordResetEmail(email.trim());
 
       if (response.success) {
-        showToast("success", "Success", response.message);
+        showToast(
+          "success",
+          "Email Sent",
+          "Password reset link has been sent to your email."
+        );
+        setTimeout(() => {
+          router.push("/(auth)/login");
+        }, 2000);
       } else {
-        showToast("error", "Login Failed", response.message);
+        showToast("error", "Error", response.message);
       }
     } catch (error: any) {
       showToast(
         "error",
         "Error",
-        error?.message || "Unexpected error occurred."
+        error?.message || "Failed to send reset email."
       );
     } finally {
       setLoading(false);
     }
   };
 
-  const handleForgotPassword = () => {
-    router.push("/(auth)/forgot-password");
-  };
-
-  const handleSignUp = () => {
-    router.push("/(auth)/signup");
+  const handleBackToLogin = () => {
+    router.push("/(auth)/login");
   };
 
   const scrollToInput = (ref: React.RefObject<View | null>) => {
@@ -294,7 +275,7 @@ export default function LoginScreen() {
                   Platform.OS === "web"
                     ? 30 * scale
                     : keyboardHeight > 0
-                      ? keyboardHeight / 2
+                      ? keyboardHeight + 30
                       : 0,
                 flexGrow: 1,
               }}
@@ -312,6 +293,32 @@ export default function LoginScreen() {
                   marginHorizontal: "auto",
                 }}
               >
+                <Pressable
+                  onPress={handleBackToLogin}
+                  hitSlop={8}
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    marginBottom: 24 * scale,
+                  }}
+                >
+                  <Ionicons
+                    name="arrow-back"
+                    size={24 * scale}
+                    color="#0d9488"
+                  />
+                  <Text
+                    style={{
+                      fontSize: 16 * scale,
+                      color: "#0d9488",
+                      marginLeft: 8 * scale,
+                      fontWeight: "600",
+                    }}
+                  >
+                    Back to Login
+                  </Text>
+                </Pressable>
+
                 <Text
                   style={{
                     fontSize: 36 * scale,
@@ -322,7 +329,7 @@ export default function LoginScreen() {
                   }}
                   accessibilityRole="header"
                 >
-                  Login
+                  Forgot Password?
                 </Text>
                 <Text
                   style={{
@@ -331,12 +338,14 @@ export default function LoginScreen() {
                     textAlign: "center",
                     marginTop: 8 * scale,
                     marginBottom: 32 * scale,
+                    lineHeight: 20 * scale,
                   }}
                 >
-                  Welcome back. Please enter your details.
+                  No worries! Enter your email and we'll send you a link to
+                  reset your password.
                 </Text>
 
-                <View style={{ marginBottom: 20 * scale }} ref={emailInputRef}>
+                <View style={{ marginBottom: 32 * scale }} ref={emailInputRef}>
                   <Text
                     style={{
                       fontSize: 14 * scale,
@@ -371,7 +380,8 @@ export default function LoginScreen() {
                       autoCorrect={false}
                       autoComplete="off"
                       placeholderTextColor="#94a3b8"
-                      returnKeyType="next"
+                      returnKeyType="done"
+                      onSubmitEditing={onSendResetLink}
                       onFocus={() => {
                         setIsEmailFocused(true);
                         scrollToInput(emailInputRef);
@@ -398,118 +408,13 @@ export default function LoginScreen() {
                   </View>
                 </View>
 
-                <View
-                  style={{ marginBottom: 20 * scale }}
-                  ref={passwordInputRef}
-                >
-                  <View
-                    style={{
-                      flexDirection: "row",
-                      alignItems: "center",
-                      justifyContent: "space-between",
-                      marginBottom: 8 * scale,
-                    }}
-                  >
-                    <Text style={{ fontSize: 14 * scale, color: "#334155" }}>
-                      Password
-                    </Text>
-                    <Pressable onPress={() => setShowPw((v) => !v)} hitSlop={8}>
-                      <Text
-                        style={{
-                          fontSize: 14 * scale,
-                          color: "#0d9488",
-                          fontWeight: "500",
-                        }}
-                      >
-                        {showPw ? "Hide" : "Show"}
-                      </Text>
-                    </Pressable>
-                  </View>
-                  <View
-                    style={{
-                      flexDirection: "row",
-                      alignItems: "center",
-                      borderRadius: 16 * scale,
-                      backgroundColor: "white",
-                      paddingHorizontal: 16 * scale,
-                      borderWidth: 1,
-                      borderColor: isPwdFocused ? "#0d9488" : "#e2e8f0",
-                    }}
-                  >
-                    <Ionicons
-                      name="lock-closed-outline"
-                      size={18 * scale}
-                      color={isPwdFocused ? "#0d9488" : "#64748b"}
-                    />
-                    <TextInput
-                      value={password}
-                      onChangeText={setPassword}
-                      placeholder="•••••••"
-                      secureTextEntry={!showPw}
-                      autoCapitalize="none"
-                      autoCorrect={false}
-                      autoComplete={
-                        Platform.OS === "web" ? "new-password" : "off"
-                      }
-                      textContentType={
-                        Platform.OS === "ios" ? "oneTimeCode" : undefined
-                      }
-                      placeholderTextColor="#94a3b8"
-                      returnKeyType="done"
-                      onSubmitEditing={onSignIn}
-                      onFocus={() => {
-                        setIsPwdFocused(true);
-                        scrollToInput(passwordInputRef);
-                      }}
-                      onBlur={() => setIsPwdFocused(false)}
-                      style={
-                        {
-                          flex: 1,
-                          paddingLeft: 12 * scale,
-                          paddingVertical:
-                            Platform.OS === "ios" ? 14 * scale : 12 * scale,
-                          fontSize: 16 * scale,
-                          color: "#0f172a",
-                          backgroundColor: "white",
-                          height: 48 * scale,
-                          borderWidth: 0,
-                          ...(Platform.OS === "web" && {
-                            outlineStyle: "none",
-                          }),
-                        } as any
-                      }
-                      accessibilityLabel="Password"
-                    />
-                  </View>
-
-                  <View
-                    style={{
-                      alignItems: "flex-end",
-                      marginTop: 8 * scale,
-                      marginBottom: 28 * scale,
-                    }}
-                  >
-                    <Pressable onPress={handleForgotPassword} hitSlop={8}>
-                      <Text
-                        style={{
-                          color: "#0d9488",
-                          fontWeight: "500",
-                          fontSize: 14 * scale,
-                        }}
-                      >
-                        Forgot Password?
-                      </Text>
-                    </Pressable>
-                  </View>
-                </View>
-
                 <Pressable
-                  onPress={onSignIn}
+                  onPress={onSendResetLink}
                   disabled={loading}
                   style={{ width: "100%", marginBottom: 8 * scale }}
                 >
                   <LinearGradient
-                    colors={["#FFB300", "#FF8A00"]}
+                    colors={["#0d9488", "#0f766e"]}
                     start={{ x: 0, y: 0.5 }}
                     end={{ x: 1, y: 0.5 }}
                     style={{
@@ -531,32 +436,11 @@ export default function LoginScreen() {
                           fontSize: 18 * scale,
                         }}
                       >
-                        Sign In
+                        Send Reset Link
                       </Text>
                     )}
                   </LinearGradient>
                 </Pressable>
-
-                <View
-                  style={{
-                    alignItems: "center",
-                    marginBottom: 32 * scale,
-                  }}
-                >
-                  <Text style={{ fontSize: 14 * scale, color: "#64748b" }}>
-                    New here?{" "}
-                    <Text
-                      style={{
-                        fontSize: 14 * scale,
-                        color: "#0d9488",
-                        fontWeight: "600",
-                      }}
-                      onPress={handleSignUp}
-                    >
-                      Create an account
-                    </Text>
-                  </Text>
-                </View>
               </View>
             </ScrollView>
           </KeyboardAvoidingView>

@@ -1,6 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
-import { useRouter } from "expo-router";
+import { useRouter, useLocalSearchParams } from "expo-router";
 import { useMemo, useState, useEffect, useRef } from "react";
 import {
   ActivityIndicator,
@@ -16,11 +16,14 @@ import {
   TextInput,
   View,
 } from "react-native";
+import Animated, { FadeInLeft, FadeOutLeft } from "react-native-reanimated";
 import { SafeAreaView } from "react-native-safe-area-context";
+import * as Linking from "expo-linking";
+import { useURL } from "expo-linking";
 import { auth } from "../../hooks/useAuth";
 import Toast, { ToastProps } from "../../components/Toast";
-import Dialog from "../../components/Dialog";
 import { useMobileWebRedirect } from "../../hooks/useMobileWebRedirect";
+import { supabase } from "../../utils/supabase";
 
 interface ToastState extends Omit<ToastProps, "onDismiss"> {
   id: number;
@@ -29,27 +32,26 @@ interface ToastState extends Omit<ToastProps, "onDismiss"> {
 const showAlert = (title: string, message: string) =>
   Alert.alert(title, message);
 
-export default function SignUpScreen() {
+export default function ResetPasswordScreen() {
   const router = useRouter();
+  const params = useLocalSearchParams();
+  const url = useURL(); // Hook to get the URL that opened the app
   const scrollViewRef = useRef<ScrollView>(null);
-  const emailInputRef = useRef<View>(null);
   const passwordInputRef = useRef<View>(null);
   const confirmPasswordInputRef = useRef<View>(null);
 
-  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPw, setShowPw] = useState(false);
   const [showConfirmPw, setShowConfirmPw] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [isEmailFocused, setIsEmailFocused] = useState(false);
   const [isPwdFocused, setIsPwdFocused] = useState(false);
   const [isConfirmPwdFocused, setIsConfirmPwdFocused] = useState(false);
   const [dimensions, setDimensions] = useState(Dimensions.get("window"));
   const [keyboardHeight, setKeyboardHeight] = useState(0);
-  const [showEmailDialog, setShowEmailDialog] = useState(false);
   const [toasts, setToasts] = useState<ToastState[]>([]);
   const toastIdRef = useRef(0);
+  const [hasValidSession, setHasValidSession] = useState(false);
   const [passwordRequirements, setPasswordRequirements] = useState({
     minLength: false,
     hasNumber: false,
@@ -69,6 +71,7 @@ export default function SignUpScreen() {
     });
   }, [password]);
 
+  // Check if passwords match in real-time
   useEffect(() => {
     if (confirmPassword.length > 0) {
       setPasswordsMatch(password === confirmPassword && password.length > 0);
@@ -76,6 +79,144 @@ export default function SignUpScreen() {
       setPasswordsMatch(false);
     }
   }, [password, confirmPassword]);
+
+  const parseUrlAndSetSession = async (urlString: string) => {
+    try {
+      if (
+        !urlString.includes("vitalspark://") &&
+        !urlString.includes("exp://")
+      ) {
+        return false;
+      }
+
+      let parsedUrl: URL;
+      if (urlString.includes("vitalspark://")) {
+        parsedUrl = new URL(urlString.replace("vitalspark://", "https://"));
+      } else if (urlString.includes("exp://")) {
+        parsedUrl = new URL(urlString.replace("exp://", "https://"));
+      } else {
+        return false;
+      }
+
+      const url = parsedUrl;
+      let access_token = url.searchParams.get("access_token");
+      let refresh_token = url.searchParams.get("refresh_token");
+
+      if (!access_token && url.hash) {
+        const hashParams = new URLSearchParams(url.hash.substring(1));
+        access_token = hashParams.get("access_token");
+        refresh_token = hashParams.get("refresh_token");
+      }
+
+      if (access_token && refresh_token) {
+        const { data, error } = await supabase.auth.setSession({
+          access_token,
+          refresh_token,
+        });
+
+        if (error) {
+          return false;
+        }
+
+        if (data.session) {
+          setHasValidSession(true);
+          return true;
+        }
+      }
+    } catch (error) {
+      return false;
+    }
+    return false;
+  };
+
+  useEffect(() => {
+    const checkAndSetSession = async () => {
+      if (params.error || params.error_code) {
+        const errorDesc = decodeURIComponent(
+          (params.error_description as string) || ""
+        );
+        showToast(
+          "error",
+          "Link Expired",
+          errorDesc ||
+            "This password reset link has expired. Please request a new one."
+        );
+        setTimeout(() => router.replace("/(auth)/forgot-password"), 2000);
+        return;
+      }
+
+      if (url && url.includes("error=")) {
+        const hashPart = url.split("#")[1] || "";
+        const urlParams = new URLSearchParams(hashPart);
+        const errorDesc = decodeURIComponent(
+          urlParams.get("error_description") || ""
+        );
+
+        showToast(
+          "error",
+          "Link Expired",
+          errorDesc ||
+            "This password reset link has expired. Please request a new one."
+        );
+        setTimeout(() => router.replace("/(auth)/forgot-password"), 2000);
+        return;
+      }
+
+      if (params.access_token && params.refresh_token) {
+        const { data, error } = await supabase.auth.setSession({
+          access_token: params.access_token as string,
+          refresh_token: params.refresh_token as string,
+        });
+
+        if (error) {
+          showToast(
+            "error",
+            "Session Error",
+            "Failed to establish session. Please try again."
+          );
+        } else if (data.session) {
+          setHasValidSession(true);
+        }
+        return;
+      }
+
+      if (url) {
+        parseUrlAndSetSession(url);
+      }
+    };
+
+    checkAndSetSession();
+  }, [url, params]);
+
+  useEffect(() => {
+    const checkSession = async () => {
+      const { data, error } = await supabase.auth.getSession();
+
+      if (error || !data.session) {
+        if (Platform.OS !== "web") {
+          return;
+        }
+
+        showToast(
+          "error",
+          "Invalid Link",
+          "Please click the password reset link from your email."
+        );
+        setTimeout(() => {
+          router.replace("/(auth)/login");
+        }, 2000);
+        return;
+      }
+
+      setHasValidSession(true);
+    };
+
+    const timer = setTimeout(() => {
+      checkSession();
+    }, 200);
+
+    return () => clearTimeout(timer);
+  }, []);
 
   const isSmallScreen = useMemo(() => {
     if (Platform.OS !== "web") return false;
@@ -195,18 +336,9 @@ export default function SignUpScreen() {
     setToasts((prev) => prev.filter((toast) => toast.id !== id));
   };
 
-  const onSignUp = async () => {
-    if (!email.trim() || !password.trim() || !confirmPassword.trim()) {
+  const onResetPassword = async () => {
+    if (!password.trim() || !confirmPassword.trim()) {
       showToast("error", "Missing info", "Please fill in all fields.");
-      return;
-    }
-
-    if (!auth.validateEmail(email)) {
-      showToast(
-        "error",
-        "Invalid Email",
-        "Please enter a valid email address."
-      );
       return;
     }
 
@@ -221,41 +353,43 @@ export default function SignUpScreen() {
       return;
     }
 
+    if (!hasValidSession) {
+      showToast(
+        "error",
+        "Invalid Session",
+        "Your session has expired. Please request a new reset link."
+      );
+      setTimeout(() => {
+        router.push("/(auth)/login");
+      }, 2000);
+      return;
+    }
+
     setLoading(true);
     try {
-      const response = await auth.signUp({
-        email: email.trim(),
-        password: password,
-      });
+      const response = await auth.updatePassword(password);
 
       if (response.success) {
-        if (Platform.OS === "web") {
-          setShowEmailDialog(true);
-        } else {
-          showAlert(
-            "Success! Check Your Email",
-            "We've sent a verification link to your email address. Please check your inbox and verify your email to complete the registration."
-          );
-          setTimeout(() => {
-            router.push("/(auth)/login");
-          }, 2000);
-        }
+        showToast(
+          "success",
+          "Password Reset",
+          "Your password has been reset successfully!"
+        );
+        setTimeout(() => {
+          router.push("/(auth)/login");
+        }, 2000);
       } else {
-        showToast("error", "Sign Up Failed", response.message);
+        showToast("error", "Reset Failed", response.message);
       }
     } catch (error: any) {
       showToast(
         "error",
         "Error",
-        error?.message || "Unexpected error occurred."
+        error?.message || "Failed to reset password."
       );
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleSignIn = () => {
-    router.push("/(auth)/login");
   };
 
   const scrollToInput = (ref: React.RefObject<View | null>) => {
@@ -337,7 +471,7 @@ export default function SignUpScreen() {
                   Platform.OS === "web"
                     ? 30 * scale
                     : keyboardHeight > 0
-                      ? keyboardHeight / 2
+                      ? keyboardHeight + 30
                       : 0,
                 flexGrow: 1,
               }}
@@ -365,84 +499,99 @@ export default function SignUpScreen() {
                   }}
                   accessibilityRole="header"
                 >
-                  Sign Up
-                </Text>
-                <Text
-                  style={{
-                    fontSize: 14 * scale,
-                    color: "#64748b",
-                    textAlign: "center",
-                    marginTop: 8 * scale,
-                    marginBottom: 32 * scale,
-                  }}
-                >
-                  Create your account to get started.
+                  Reset Password
                 </Text>
 
-                <View style={{ marginBottom: 20 * scale }} ref={emailInputRef}>
-                  <Text
+                {!hasValidSession && Platform.OS !== "web" ? (
+                  <Animated.View
+                    entering={FadeInLeft.duration(300)}
+                    exiting={FadeOutLeft.duration(200)}
                     style={{
-                      fontSize: 14 * scale,
-                      color: "#334155",
-                      marginBottom: 8 * scale,
-                    }}
-                  >
-                    Email
-                  </Text>
-                  <View
-                    style={{
-                      flexDirection: "row",
-                      alignItems: "center",
+                      backgroundColor: "#fef3c7",
+                      padding: 18 * scale,
                       borderRadius: 16 * scale,
-                      backgroundColor: "white",
-                      paddingHorizontal: 16 * scale,
-                      borderWidth: 1,
-                      borderColor: isEmailFocused ? "#0d9488" : "#e2e8f0",
+                      marginTop: 12 * scale,
+                      marginBottom: 32 * scale,
+                      borderWidth: 1.5,
+                      borderColor: "#fcd34d",
+                      shadowColor: "#f59e0b",
+                      shadowOffset: { width: 0, height: 2 },
+                      shadowOpacity: 0.1,
+                      shadowRadius: 8,
+                      elevation: 3,
                     }}
                   >
-                    <Ionicons
-                      name="mail-outline"
-                      size={18 * scale}
-                      color={isEmailFocused ? "#0d9488" : "#64748b"}
-                    />
-                    <TextInput
-                      value={email}
-                      onChangeText={setEmail}
-                      placeholder="you@example.com"
-                      keyboardType="email-address"
-                      autoCapitalize="none"
-                      autoCorrect={false}
-                      autoComplete="off"
-                      placeholderTextColor="#94a3b8"
-                      returnKeyType="next"
-                      onFocus={() => {
-                        setIsEmailFocused(true);
-                        scrollToInput(emailInputRef);
+                    <View
+                      style={{
+                        flexDirection: "row",
+                        alignItems: "center",
+                        marginBottom: 10 * scale,
                       }}
-                      onBlur={() => setIsEmailFocused(false)}
-                      style={
-                        {
+                    >
+                      <View
+                        style={{
+                          backgroundColor: "#fbbf24",
+                          borderRadius: 20 * scale,
+                          width: 36 * scale,
+                          height: 36 * scale,
+                          alignItems: "center",
+                          justifyContent: "center",
+                          marginRight: 12 * scale,
+                        }}
+                      >
+                        <Ionicons
+                          name="mail-outline"
+                          size={20 * scale}
+                          color="#78350f"
+                        />
+                      </View>
+                      <Text
+                        style={{
+                          fontSize: 17 * scale,
+                          fontWeight: "700",
+                          color: "#92400e",
                           flex: 1,
-                          paddingLeft: 12 * scale,
-                          paddingVertical:
-                            Platform.OS === "ios" ? 14 * scale : 12 * scale,
-                          fontSize: 16 * scale,
-                          color: "#0f172a",
-                          backgroundColor: "white",
-                          height: 48 * scale,
-                          borderWidth: 0,
-                          ...(Platform.OS === "web" && {
-                            outlineStyle: "none",
-                          }),
-                        } as any
-                      }
-                      accessibilityLabel="Email address"
-                    />
-                  </View>
-                </View>
+                        }}
+                      >
+                        Action Required
+                      </Text>
+                    </View>
+                    <Text
+                      style={{
+                        fontSize: 14 * scale,
+                        color: "#78350f",
+                        lineHeight: 22 * scale,
+                        marginLeft: 48 * scale,
+                      }}
+                    >
+                      Please open your email and tap the "Reset Password" link
+                      to continue.
+                    </Text>
+                  </Animated.View>
+                ) : hasValidSession ? (
+                  <Animated.View
+                    entering={FadeInLeft.duration(300).delay(100)}
+                    exiting={FadeOutLeft.duration(200)}
+                  >
+                    <Text
+                      style={{
+                        fontSize: 14 * scale,
+                        color: "#64748b",
+                        textAlign: "center",
+                        marginTop: 8 * scale,
+                        marginBottom: 32 * scale,
+                      }}
+                    >
+                      Enter your new password below.
+                    </Text>
+                  </Animated.View>
+                ) : null}
 
                 <View
-                  style={{ marginBottom: 20 * scale }}
+                  style={{
+                    marginBottom: 20 * scale,
+                    opacity: hasValidSession ? 1 : 0.5,
+                  }}
                   ref={passwordInputRef}
                 >
                   <View
@@ -454,7 +603,7 @@ export default function SignUpScreen() {
                     }}
                   >
                     <Text style={{ fontSize: 14 * scale, color: "#334155" }}>
-                      Create Password
+                      New Password
                     </Text>
                     <Pressable onPress={() => setShowPw((v) => !v)} hitSlop={8}>
                       <Text
@@ -499,6 +648,7 @@ export default function SignUpScreen() {
                       }
                       placeholderTextColor="#94a3b8"
                       returnKeyType="next"
+                      editable={hasValidSession}
                       onFocus={() => {
                         setIsPwdFocused(true);
                         scrollToInput(passwordInputRef);
@@ -520,7 +670,7 @@ export default function SignUpScreen() {
                           }),
                         } as any
                       }
-                      accessibilityLabel="Create password"
+                      accessibilityLabel="New password"
                     />
                   </View>
 
@@ -672,7 +822,10 @@ export default function SignUpScreen() {
                 </View>
 
                 <View
-                  style={{ marginBottom: 20 * scale }}
+                  style={{
+                    marginBottom: 20 * scale,
+                    opacity: hasValidSession ? 1 : 0.5,
+                  }}
                   ref={confirmPasswordInputRef}
                 >
                   <View
@@ -732,7 +885,8 @@ export default function SignUpScreen() {
                       }
                       placeholderTextColor="#94a3b8"
                       returnKeyType="done"
-                      onSubmitEditing={onSignUp}
+                      editable={hasValidSession}
+                      onSubmitEditing={onResetPassword}
                       onFocus={() => {
                         setIsConfirmPwdFocused(true);
                         scrollToInput(confirmPasswordInputRef);
@@ -793,12 +947,12 @@ export default function SignUpScreen() {
                 </View>
 
                 <Pressable
-                  onPress={onSignUp}
-                  disabled={loading}
+                  onPress={onResetPassword}
+                  disabled={loading || !hasValidSession}
                   style={{ width: "100%", marginBottom: 8 * scale }}
                 >
                   <LinearGradient
-                    colors={["#FFB300", "#FF8A00"]}
+                    colors={["#0d9488", "#0f766e"]}
                     start={{ x: 0, y: 0.5 }}
                     end={{ x: 1, y: 0.5 }}
                     style={{
@@ -807,7 +961,7 @@ export default function SignUpScreen() {
                       borderRadius: 16 * scale,
                       alignItems: "center",
                       justifyContent: "center",
-                      opacity: loading ? 0.8 : 1,
+                      opacity: loading || !hasValidSession ? 0.8 : 1,
                     }}
                   >
                     {loading ? (
@@ -820,7 +974,7 @@ export default function SignUpScreen() {
                           fontSize: 18 * scale,
                         }}
                       >
-                        Sign Up
+                        Reset Password
                       </Text>
                     )}
                   </LinearGradient>
@@ -829,97 +983,29 @@ export default function SignUpScreen() {
                 <View
                   style={{
                     alignItems: "center",
-                    marginBottom: 32 * scale,
+                    marginTop: 16 * scale,
                   }}
                 >
-                  <Text style={{ fontSize: 14 * scale, color: "#64748b" }}>
-                    Already have an account?{" "}
+                  <Pressable
+                    onPress={() => router.push("/(auth)/login")}
+                    hitSlop={8}
+                  >
                     <Text
                       style={{
                         fontSize: 14 * scale,
                         color: "#0d9488",
                         fontWeight: "600",
                       }}
-                      onPress={handleSignIn}
                     >
-                      Sign In
+                      Back to Login
                     </Text>
-                  </Text>
+                  </Pressable>
                 </View>
               </View>
             </ScrollView>
           </KeyboardAvoidingView>
         </View>
       </View>
-
-      {Platform.OS === "web" && (
-        <Dialog
-          visible={showEmailDialog}
-          onDismiss={() => {
-            setShowEmailDialog(false);
-            router.push("/(auth)/login");
-          }}
-        >
-          <View style={{ alignItems: "center", marginBottom: 16 }}>
-            <Ionicons name="mail-outline" size={48} color="#0d9488" />
-          </View>
-          <Text
-            style={{
-              fontSize: 18,
-              fontWeight: "700",
-              color: "#0f172a",
-              textAlign: "center",
-              marginBottom: 10,
-            }}
-          >
-            Check Your Email
-          </Text>
-          <Text
-            style={{
-              fontSize: 14,
-              color: "#64748b",
-              textAlign: "center",
-              marginBottom: 20,
-              lineHeight: 20,
-            }}
-          >
-            We've sent a verification link to{" "}
-            <Text style={{ fontWeight: "600", color: "#0d9488" }}>{email}</Text>
-            . Please check your inbox and verify your email to complete the
-            registration.
-          </Text>
-          <Pressable
-            onPress={() => {
-              setShowEmailDialog(false);
-              router.push("/(auth)/login");
-            }}
-            style={{ width: "100%" }}
-          >
-            <LinearGradient
-              colors={["#0d9488", "#0f766e"]}
-              start={{ x: 0, y: 0.5 }}
-              end={{ x: 1, y: 0.5 }}
-              style={{
-                width: "100%",
-                height: 44,
-                borderRadius: 10,
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-            >
-              <Text
-                style={{
-                  color: "#fff",
-                  fontWeight: "600",
-                  fontSize: 14,
-                }}
-              >
-                Got It
-              </Text>
-            </LinearGradient>
-          </Pressable>
-        </Dialog>
-      )}
 
       {toasts.map((toast, index) => (
         <Toast

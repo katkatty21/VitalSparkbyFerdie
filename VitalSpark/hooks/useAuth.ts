@@ -19,6 +19,11 @@ export interface ResetPasswordRequest {
     email: string;
 }
 
+export interface UpdatePasswordRequest {
+    token: string;
+    newPassword: string;
+}
+
 export interface AuthResponse {
     success: boolean;
     message: string;
@@ -160,10 +165,8 @@ class Auth {
         }
     }
 
-    async resetPassword(request: ResetPasswordRequest): Promise<AuthResponse> {
+    async sendPasswordResetEmail(email: string): Promise<AuthResponse> {
         try {
-            const { email } = request;
-
             if (!email.trim()) {
                 return {
                     success: false,
@@ -172,8 +175,10 @@ class Auth {
                 };
             }
 
+            const redirectTo = getRedirectUri('(auth)/reset-password');
+
             const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
-                redirectTo: 'vitalspark://reset-password',
+                redirectTo: redirectTo,
             });
 
             if (error) {
@@ -197,6 +202,60 @@ class Auth {
                 error: apiError.code || 'UNEXPECTED_ERROR',
             };
         }
+    }
+
+    async updatePassword(newPassword: string): Promise<AuthResponse> {
+        try {
+            if (!newPassword.trim()) {
+                return {
+                    success: false,
+                    message: 'Password is required.',
+                    error: 'MISSING_PASSWORD',
+                };
+            }
+
+            const passwordValidation = this.validatePassword(newPassword);
+            if (!passwordValidation.isValid) {
+                return {
+                    success: false,
+                    message: passwordValidation.message || 'Invalid password.',
+                    error: 'INVALID_PASSWORD',
+                };
+            }
+
+            const { data, error } = await supabase.auth.updateUser({
+                password: newPassword,
+            });
+
+            if (error) {
+                const apiError = this.handleError(error);
+                return {
+                    success: false,
+                    message: this.getFriendlyErrorMessage(apiError.message),
+                    error: apiError.code || 'UPDATE_PASSWORD_ERROR',
+                };
+            }
+
+            return {
+                success: true,
+                message: 'Password reset successfully.',
+                data: {
+                    user: data.user,
+                },
+            };
+        } catch (error: any) {
+            const apiError = this.handleError(error);
+            return {
+                success: false,
+                message: apiError.message,
+                error: apiError.code || 'UNEXPECTED_ERROR',
+            };
+        }
+    }
+
+    async resetPassword(request: UpdatePasswordRequest): Promise<AuthResponse> {
+        // Deprecated: Use updatePassword instead
+        return this.updatePassword(request.newPassword);
     }
 
     async signOut(): Promise<AuthResponse> {
@@ -298,6 +357,9 @@ class Auth {
             'Password should be at least 6 characters': 'Password must be at least 6 characters long.',
             'Unable to validate email address: invalid format': 'Please enter a valid email address.',
             'Signup requires a valid password': 'Please enter a valid password.',
+            'Invalid Refresh Token': 'Your session has expired. Please sign in again.',
+            'Refresh Token Not Found': 'Your session has expired. Please sign in again.',
+            'refresh_token_not_found': 'Your session has expired. Please sign in again.',
         };
 
         for (const [key, value] of Object.entries(errorMap)) {
@@ -315,12 +377,41 @@ class Auth {
     }
 
     validatePassword(password: string): { isValid: boolean; message?: string } {
-        if (password.length < 6) {
+        const requirements = {
+            minLength: password.length >= 6,
+            hasNumber: /\d/.test(password),
+            hasUpperCase: /[A-Z]/.test(password),
+            hasLowerCase: /[a-z]/.test(password),
+        };
+
+        if (!requirements.minLength) {
             return {
                 isValid: false,
                 message: 'Password must be at least 6 characters long.',
             };
         }
+
+        if (!requirements.hasNumber) {
+            return {
+                isValid: false,
+                message: 'Password must contain at least one number.',
+            };
+        }
+
+        if (!requirements.hasUpperCase) {
+            return {
+                isValid: false,
+                message: 'Password must contain at least one uppercase letter.',
+            };
+        }
+
+        if (!requirements.hasLowerCase) {
+            return {
+                isValid: false,
+                message: 'Password must contain at least one lowercase letter.',
+            };
+        }
+
         return { isValid: true };
     }
 }

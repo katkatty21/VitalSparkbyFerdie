@@ -2,6 +2,7 @@
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 import { Platform } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Load resources
 import en from './locales/en/common.json';
@@ -26,7 +27,6 @@ const languageStorage = {
                 }
                 return null;
             } else {
-                const AsyncStorage = require('@react-native-async-storage/async-storage').default;
                 return await AsyncStorage.getItem(key);
             }
         } catch {
@@ -41,7 +41,6 @@ const languageStorage = {
                     window.localStorage.setItem(key, value);
                 }
             } else {
-                const AsyncStorage = require('@react-native-async-storage/async-storage').default;
                 await AsyncStorage.setItem(key, value);
             }
         } catch {
