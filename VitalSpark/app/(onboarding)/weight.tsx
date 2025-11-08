@@ -622,11 +622,13 @@ export default function WeightOnboarding() {
                   alignItems: "center",
                   justifyContent: "center",
                   marginBottom: isWeb ? (screenWidth < 1280 ? -24 : 10) : 0,
-                  shadowColor: "#000",
-                  shadowOpacity: 0.12,
-                  shadowRadius: 6,
-                  shadowOffset: { width: 0, height: 2 },
-                  elevation: 2,
+                  ...(Platform.OS !== "web" && {
+                    shadowColor: "#000",
+                    shadowOpacity: 0.12,
+                    shadowRadius: 6,
+                    shadowOffset: { width: 0, height: 2 },
+                    elevation: 2,
+                  }),
                 }}
               >
                 {busy ? (

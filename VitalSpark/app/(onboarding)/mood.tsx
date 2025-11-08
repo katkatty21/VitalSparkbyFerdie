@@ -381,15 +381,17 @@ export default function MoodOnboarding() {
                                   : "#233056",
                               alignItems: "center",
                               justifyContent: "center",
-                              shadowColor:
-                                selectedMood === mood.code
-                                  ? mood.color
-                                  : "#000",
-                              shadowOpacity:
-                                selectedMood === mood.code ? 0.18 : 0.08,
-                              shadowRadius: 8,
-                              shadowOffset: { width: 0, height: 2 },
-                              elevation: selectedMood === mood.code ? 5 : 2,
+                              ...(Platform.OS !== "web" && {
+                                shadowColor:
+                                  selectedMood === mood.code
+                                    ? mood.color
+                                    : "#000",
+                                shadowOpacity:
+                                  selectedMood === mood.code ? 0.18 : 0.08,
+                                shadowRadius: 8,
+                                shadowOffset: { width: 0, height: 2 },
+                                elevation: selectedMood === mood.code ? 5 : 2,
+                              }),
                               transform:
                                 selectedMood === mood.code
                                   ? [{ scale: 1.06 }]
@@ -449,15 +451,17 @@ export default function MoodOnboarding() {
                                   : "#233056",
                               alignItems: "center",
                               justifyContent: "center",
-                              shadowColor:
-                                selectedMood === mood.code
-                                  ? mood.color
-                                  : "#000",
-                              shadowOpacity:
-                                selectedMood === mood.code ? 0.18 : 0.08,
-                              shadowRadius: 8,
-                              shadowOffset: { width: 0, height: 2 },
-                              elevation: selectedMood === mood.code ? 5 : 2,
+                              ...(Platform.OS !== "web" && {
+                                shadowColor:
+                                  selectedMood === mood.code
+                                    ? mood.color
+                                    : "#000",
+                                shadowOpacity:
+                                  selectedMood === mood.code ? 0.18 : 0.08,
+                                shadowRadius: 8,
+                                shadowOffset: { width: 0, height: 2 },
+                                elevation: selectedMood === mood.code ? 5 : 2,
+                              }),
                               transform:
                                 selectedMood === mood.code
                                   ? [{ scale: 1.06 }]
@@ -538,11 +542,13 @@ export default function MoodOnboarding() {
                     alignItems: "center",
                     justifyContent: "center",
                     marginBottom: isWeb ? (screenWidth < 1280 ? -24 : 10) : 0,
-                    shadowColor: "#000",
-                    shadowOpacity: 0.12,
-                    shadowRadius: 6,
-                    shadowOffset: { width: 0, height: 2 },
-                    elevation: 2,
+                    ...(Platform.OS !== "web" && {
+                      shadowColor: "#000",
+                      shadowOpacity: 0.12,
+                      shadowRadius: 6,
+                      shadowOffset: { width: 0, height: 2 },
+                      elevation: 2,
+                    }),
                   }}
                 >
                   {busy ? (

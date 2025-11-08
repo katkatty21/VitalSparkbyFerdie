@@ -450,12 +450,12 @@ export default function FinishOnboarding() {
                 contentContainerStyle={{
                   flexGrow: 1,
                   paddingBottom: isVerySmallMobile
-                    ? 120
+                    ? 32
                     : isSmallMobile
-                      ? 130
+                      ? 36
                       : isMobile
-                        ? 140
-                        : 160,
+                        ? 40
+                        : 48,
                 }}
                 showsVerticalScrollIndicator={false}
                 bounces={false}
@@ -688,7 +688,7 @@ export default function FinishOnboarding() {
                   >
                     <View
                       style={{
-                        borderRadius: isVerySmallMobile ? 12 : 14,
+                        borderRadius: isVerySmallMobile ? 14 : 16,
                         backgroundColor: "rgba(254, 240, 138, 0.06)",
                         borderWidth: 1,
                         borderColor: "rgba(254, 240, 138, 0.15)",
@@ -765,11 +765,13 @@ export default function FinishOnboarding() {
                       style={{
                         borderRadius: isVerySmallMobile ? 14 : 16,
                         overflow: "hidden",
-                        shadowColor: "#000",
-                        shadowOpacity: 0.15,
-                        shadowRadius: 8,
-                        shadowOffset: { width: 0, height: 4 },
-                        elevation: 3,
+                        ...(Platform.OS !== "web" && {
+                          shadowColor: "#000",
+                          shadowOpacity: 0.15,
+                          shadowRadius: 8,
+                          shadowOffset: { width: 0, height: 4 },
+                          elevation: 3,
+                        }),
                       }}
                     >
                       <LinearGradient
@@ -880,137 +882,128 @@ export default function FinishOnboarding() {
                       {t("onboarding.finish.journeyStarts")}
                     </Text>
                   </Animated.View>
-                </View>
-              </ScrollView>
 
-              {/* Bottom Button - Fixed */}
-              <View
-                style={{
-                  position: "absolute",
-                  bottom: 0,
-                  left: 0,
-                  right: 0,
-                  paddingTop: isVerySmallMobile ? 16 : 20,
-                  paddingBottom: isVerySmallMobile
-                    ? 16
-                    : isSmallMobile
-                      ? 18
-                      : isMobile
-                        ? 20
-                        : 24,
-                  paddingHorizontal: containerPadding,
-                  backgroundColor: "rgba(11, 18, 32, 0.95)",
-                  borderTopWidth: 1,
-                  borderTopColor: "rgba(107, 114, 128, 0.2)",
-                }}
-              >
-                <Animated.View
-                  style={{
-                    transform: [{ scale: pulseAnim }],
-                    width: "100%",
-                    alignItems: "center",
-                  }}
-                >
-                  <TouchableOpacity
-                    onPress={handleCreateProfile}
-                    disabled={busy}
-                    activeOpacity={0.85}
+                  {/* Bottom Button */}
+                  <Animated.View
                     style={{
+                      opacity: fadeAnim,
+                      transform: [{ scale: pulseAnim }],
+                      width: "95%",
+                      alignSelf: "center",
                       borderRadius: isVerySmallMobile ? 14 : 16,
                       overflow: "hidden",
-                      width: "100%",
-                      maxWidth: 500,
-                      shadowColor: "#10b981",
-                      shadowOffset: { width: 0, height: 10 },
-                      shadowOpacity: 0.4,
-                      shadowRadius: 24,
-                      elevation: 10,
+                      marginTop: isVerySmallMobile
+                        ? 24
+                        : isSmallMobile
+                          ? 28
+                          : isMobile
+                            ? 32
+                            : 40,
+                      ...(Platform.OS !== "web" && {
+                        shadowColor: "#10b981",
+                        shadowOffset: { width: 0, height: 10 },
+                        shadowOpacity: 0.4,
+                        shadowRadius: 24,
+                        elevation: 10,
+                      }),
                     }}
                   >
-                    <LinearGradient
-                      colors={["#10b981", "#059669", "#047857"]}
-                      start={{ x: 0, y: 0 }}
-                      end={{ x: 1, y: 1 }}
+                    <TouchableOpacity
+                      onPress={handleCreateProfile}
+                      disabled={busy}
+                      activeOpacity={0.85}
                       style={{
-                        paddingVertical: isVerySmallMobile
-                          ? 14
-                          : isSmallMobile
-                            ? 16
-                            : isMobile
-                              ? 18
-                              : 22,
-                        paddingHorizontal: isVerySmallMobile ? 24 : 28,
+                        borderRadius: isVerySmallMobile ? 14 : 16,
+                        overflow: "hidden",
                       }}
                     >
-                      <View
+                      <LinearGradient
+                        colors={["#10b981", "#059669", "#047857"]}
+                        start={{ x: 0, y: 0 }}
+                        end={{ x: 1, y: 1 }}
                         style={{
-                          flexDirection: "row",
-                          alignItems: "center",
-                          justifyContent: "center",
+                          paddingVertical: isVerySmallMobile
+                            ? 14
+                            : isSmallMobile
+                              ? 16
+                              : isMobile
+                                ? 18
+                                : 22,
+                          paddingHorizontal: isVerySmallMobile ? 24 : 28,
                         }}
                       >
-                        {busy ? (
-                          <ActivityIndicator size="small" color="#ffffff" />
-                        ) : (
-                          <>
-                            <Text
-                              style={{
-                                fontSize: isVerySmallMobile
-                                  ? 22
-                                  : isSmallMobile
-                                    ? 24
-                                    : isMobile
-                                      ? 26
-                                      : 28,
-                                marginRight: isVerySmallMobile
-                                  ? 10
-                                  : isSmallMobile
-                                    ? 12
-                                    : 14,
-                              }}
-                            >
-                              ❤️
-                            </Text>
-                            <View style={{ alignItems: "center" }}>
+                        <View
+                          style={{
+                            flexDirection: "row",
+                            alignItems: "center",
+                            justifyContent: "center",
+                          }}
+                        >
+                          {busy ? (
+                            <ActivityIndicator size="small" color="#ffffff" />
+                          ) : (
+                            <>
                               <Text
                                 style={{
-                                  color: "#ffffff",
-                                  fontWeight: "800",
                                   fontSize: isVerySmallMobile
-                                    ? 15
+                                    ? 22
                                     : isSmallMobile
-                                      ? 16
+                                      ? 24
                                       : isMobile
-                                        ? 17
-                                        : 19,
-                                  letterSpacing: isVerySmallMobile ? 0.4 : 0.6,
-                                  marginBottom: 2,
-                                }}
-                              >
-                                {t("onboarding.finish.itsGoodToGo")}
-                              </Text>
-                              <Text
-                                style={{
-                                  color: "rgba(209, 250, 229, 0.95)",
-                                  fontSize: isVerySmallMobile
-                                    ? 12
-                                    : isMobile
-                                      ? 13
+                                        ? 26
+                                        : 28,
+                                  marginRight: isVerySmallMobile
+                                    ? 10
+                                    : isSmallMobile
+                                      ? 12
                                       : 14,
-                                  fontWeight: "500",
-                                  letterSpacing: 0.3,
                                 }}
                               >
-                                {t("onboarding.finish.createMyProfile")}
+                                ❤️
                               </Text>
-                            </View>
-                          </>
-                        )}
-                      </View>
-                    </LinearGradient>
-                  </TouchableOpacity>
-                </Animated.View>
-              </View>
+                              <View style={{ alignItems: "center" }}>
+                                <Text
+                                  style={{
+                                    color: "#ffffff",
+                                    fontWeight: "800",
+                                    fontSize: isVerySmallMobile
+                                      ? 15
+                                      : isSmallMobile
+                                        ? 16
+                                        : isMobile
+                                          ? 17
+                                          : 19,
+                                    letterSpacing: isVerySmallMobile
+                                      ? 0.4
+                                      : 0.6,
+                                    marginBottom: 2,
+                                  }}
+                                >
+                                  {t("onboarding.finish.itsGoodToGo")}
+                                </Text>
+                                <Text
+                                  style={{
+                                    color: "rgba(209, 250, 229, 0.95)",
+                                    fontSize: isVerySmallMobile
+                                      ? 12
+                                      : isMobile
+                                        ? 13
+                                        : 14,
+                                    fontWeight: "500",
+                                    letterSpacing: 0.3,
+                                  }}
+                                >
+                                  {t("onboarding.finish.createMyProfile")}
+                                </Text>
+                              </View>
+                            </>
+                          )}
+                        </View>
+                      </LinearGradient>
+                    </TouchableOpacity>
+                  </Animated.View>
+                </View>
+              </ScrollView>
             </View>
           </View>
         </KeyboardAvoidingView>

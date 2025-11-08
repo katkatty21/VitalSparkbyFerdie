@@ -2,6 +2,7 @@ import { Stack } from "expo-router";
 import { useEffect, useState } from "react";
 import { UserProvider } from "../contexts/UserContext";
 import { AuthProvider } from "../contexts/AuthContext";
+import { WorkoutProvider } from "../contexts/WorkoutContext";
 import { useProtectedRoute } from "../hooks/useProtectedRoute";
 import { initI18n } from "../i18n";
 import { View, ActivityIndicator } from "react-native";
@@ -43,7 +44,9 @@ export default function RootLayout() {
   return (
     <AuthProvider>
       <UserProvider>
-        <RootLayoutNav />
+        <WorkoutProvider>
+          <RootLayoutNav />
+        </WorkoutProvider>
       </UserProvider>
     </AuthProvider>
   );

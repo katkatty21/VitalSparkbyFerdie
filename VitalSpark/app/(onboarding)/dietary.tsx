@@ -438,11 +438,13 @@ export default function DietaryOnboarding() {
                     marginTop: 4,
                     overflow: "hidden",
                     zIndex: 1000,
-                    elevation: 10,
-                    shadowColor: "#000",
-                    shadowOffset: { width: 0, height: 4 },
-                    shadowOpacity: 0.3,
-                    shadowRadius: 8,
+                    ...(Platform.OS !== "web" && {
+                      elevation: 10,
+                      shadowColor: "#000",
+                      shadowOffset: { width: 0, height: 4 },
+                      shadowOpacity: 0.3,
+                      shadowRadius: 8,
+                    }),
                   }}
                 >
                   {dietaryPreferenceOptions.map((option, index) => (
@@ -847,11 +849,13 @@ export default function DietaryOnboarding() {
               justifyContent: "center",
               marginTop: 16,
               marginBottom: 24,
-              shadowColor: "#000",
-              shadowOpacity: 0.12,
-              shadowRadius: 6,
-              shadowOffset: { width: 0, height: 2 },
-              elevation: 2,
+              ...(Platform.OS !== "web" && {
+                shadowColor: "#000",
+                shadowOpacity: 0.12,
+                shadowRadius: 6,
+                shadowOffset: { width: 0, height: 2 },
+                elevation: 2,
+              }),
             }}
             onPress={handleContinue}
             disabled={!isValid || busy}

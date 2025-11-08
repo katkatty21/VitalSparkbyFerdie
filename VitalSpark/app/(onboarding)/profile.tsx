@@ -522,13 +522,15 @@ export default function ProfileOnboarding() {
                             : "#233056",
                         alignItems: "center",
                         justifyContent: "center",
-                        shadowColor:
-                          selectedGender === gender.code ? "#059669" : "#000",
-                        shadowOpacity:
-                          selectedGender === gender.code ? 0.3 : 0.08,
-                        shadowRadius: 8,
-                        shadowOffset: { width: 0, height: 2 },
-                        elevation: selectedGender === gender.code ? 5 : 2,
+                        ...(Platform.OS !== "web" && {
+                          shadowColor:
+                            selectedGender === gender.code ? "#059669" : "#000",
+                          shadowOpacity:
+                            selectedGender === gender.code ? 0.3 : 0.08,
+                          shadowRadius: 8,
+                          shadowOffset: { width: 0, height: 2 },
+                          elevation: selectedGender === gender.code ? 5 : 2,
+                        }),
                       }}
                       activeOpacity={0.85}
                     >
@@ -594,11 +596,13 @@ export default function ProfileOnboarding() {
                   justifyContent: "center",
                   marginTop: 8,
                   marginBottom: isWeb ? (screenWidth < 1280 ? -24 : 10) : 0,
-                  shadowColor: "#000",
-                  shadowOpacity: 0.12,
-                  shadowRadius: 6,
-                  shadowOffset: { width: 0, height: 2 },
-                  elevation: 2,
+                  ...(Platform.OS !== "web" && {
+                    shadowColor: "#000",
+                    shadowOpacity: 0.12,
+                    shadowRadius: 6,
+                    shadowOffset: { width: 0, height: 2 },
+                    elevation: 2,
+                  }),
                 }}
               >
                 {busy ? (
