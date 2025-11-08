@@ -97,13 +97,8 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
 
 // Handle session errors and clear invalid sessions
 supabase.auth.onAuthStateChange((event, session) => {
-    if (event === 'TOKEN_REFRESHED') {
-        console.log('Token refreshed successfully');
-    } else if (event === 'SIGNED_OUT') {
-        console.log('User signed out');
-    } else if (event === 'SIGNED_IN') {
-        console.log('User signed in');
-    }
+    // Removed console logs for cleaner user experience
+    // Auth state changes are handled by AuthContext
 });
 
 // Clear invalid session on initialization

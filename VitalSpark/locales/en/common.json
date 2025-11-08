@@ -26,6 +26,15 @@
 		"ageRange26to35": "26 - 35 years old",
 		"ageRange36to45": "36 - 45 years old",
 		"ageRange46plus": "46+ years old",
+		"tellUsWhereYouAre": "Tell us where you are located",
+		"country": "Country",
+		"selectCountry": "Select a country",
+		"searchCountry": "Search country",
+		"regionProvinceState": "Region/Province/State",
+		"selectRegion": "Select region/state/province",
+		"searchRegion": "Search region/state/province",
+		"selectCountryFirst": "Select a country first",
+		"noRegionsAvailable": "No regions available",
 		"whatsYourHeight": "What's your height?",
 		"heightHelpsCalculateNeeds": "Height helps us calculate your daily energy needs.",
 		"whatsYourWeight": "What's your weight?",
@@ -43,6 +52,7 @@
 		"specifyOtherEquipment": "Press + to save and add more)",
 		"yourTargetMuscles": "Your Target Muscles",
 		"tellUsAboutTargetMuscles": "Tell us about your target muscles",
+		"targetMuscles": "Target muscles",
 		"dietaryPreferences": "Dietary Preferences",
 		"helpUsPersonalizeMealPlanning": "Help us personalize your meal planning and recommendations",
 		"dietaryPreference": "Dietary Preference",
@@ -238,6 +248,7 @@
 		"next": "Next",
 		"submit": "Submit",
 		"close": "Close",
-		"select": "Select"
+		"select": "Select",
+		"not_now": "Not Now"
 	}
 }

@@ -26,6 +26,15 @@
 		"ageRange26to35": "26 - 35 taong gulang",
 		"ageRange36to45": "36 - 45 taong gulang",
 		"ageRange46plus": "46+ taong gulang",
+		"tellUsWhereYouAre": "Sabihin sa amin kung nasaan ka",
+		"country": "Bansa",
+		"selectCountry": "Pumili ng bansa",
+		"searchCountry": "Maghanap ng bansa",
+		"regionProvinceState": "Rehiyon/Probinsya/Estado",
+		"selectRegion": "Pumili ng rehiyon/estado/probinsya",
+		"searchRegion": "Maghanap ng rehiyon/estado/probinsya",
+		"selectCountryFirst": "Pumili muna ng bansa",
+		"noRegionsAvailable": "Walang available na rehiyon",
 		"whatsYourHeight": "Ano ang iyong taas?",
 		"heightHelpsCalculateNeeds": "Ang taas ay tumutulong sa amin na kalkulahin ang iyong pang-araw-araw na pangangailangan sa enerhiya.",
 		"whatsYourWeight": "Ano ang iyong timbang?",
@@ -43,6 +52,7 @@
 		"specifyOtherEquipment": "Pindutin ang + para i-save at magdagdag pa)",
 		"yourTargetMuscles": "Inyong Target na Muscles",
 		"tellUsAboutTargetMuscles": "Sabihin sa amin ang tungkol sa inyong target na muscles",
+		"targetMuscles": "Mga target na kalamnan",
 		"dietaryPreferences": "Mga Pagkaing Pinipili",
 		"helpUsPersonalizeMealPlanning": "Tulungan mo kaming i-personalize ang inyong meal planning at mga rekomendasyon",
 		"dietaryPreference": "Pagkaing Pinipili",
@@ -237,6 +247,8 @@
 		"ok": "OK",
 		"back": "Bumalik",
 		"next": "Susunod",
-		"submit": "isumite"
+		"submit": "isumite",
+		"select": "Pumili",
+		"not_now": "Hindi Muna"
 	}
 }

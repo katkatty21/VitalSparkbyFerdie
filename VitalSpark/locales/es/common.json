@@ -26,6 +26,15 @@
 		"ageRange26to35": "26 - 35 años",
 		"ageRange36to45": "36 - 45 años",
 		"ageRange46plus": "46+ años",
+		"tellUsWhereYouAre": "Dinos dónde te encuentras",
+		"country": "País",
+		"selectCountry": "Selecciona un país",
+		"searchCountry": "Buscar país",
+		"regionProvinceState": "Región/Provincia/Estado",
+		"selectRegion": "Selecciona región/estado/provincia",
+		"searchRegion": "Buscar región/estado/provincia",
+		"selectCountryFirst": "Selecciona un país primero",
+		"noRegionsAvailable": "No hay regiones disponibles",
 		"whatsYourHeight": "¿Cuál es tu altura?",
 		"heightHelpsCalculateNeeds": "La altura nos ayuda a calcular tus necesidades energéticas diarias.",
 		"whatsYourWeight": "¿Cuál es tu peso?",
@@ -43,6 +52,7 @@
 		"specifyOtherEquipment": "Presiona + para guardar y agregar más)",
 		"yourTargetMuscles": "Tus Músculos Objetivo",
 		"tellUsAboutTargetMuscles": "Cuéntanos sobre tus músculos objetivo",
+		"targetMuscles": "Músculos objetivo",
 		"dietaryPreferences": "Preferencias Dietéticas",
 		"helpUsPersonalizeMealPlanning": "Ayúdanos a personalizar tu planificación de comidas y recomendaciones",
 		"dietaryPreference": "Preferencia Dietética",
@@ -237,6 +247,8 @@
 		"ok": "OK",
 		"back": "Atrás",
 		"next": "Siguiente",
-		"submit": "Enviar"
+		"submit": "Enviar",
+		"select": "Seleccionar",
+		"not_now": "Ahora No"
 	}
 }

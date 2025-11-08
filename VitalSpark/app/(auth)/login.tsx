@@ -20,6 +20,8 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { auth } from "../../hooks/useAuth";
 import Toast, { ToastProps } from "../../components/Toast";
 import { useMobileWebRedirect } from "../../hooks/useMobileWebRedirect";
+import { useUserData } from "../../hooks/useUserData";
+import { supabase } from "../../utils/supabase";
 
 interface ToastState extends Omit<ToastProps, "onDismiss"> {
   id: number;
@@ -44,6 +46,7 @@ export default function LoginScreen() {
   const [keyboardHeight, setKeyboardHeight] = useState(0);
   const [toasts, setToasts] = useState<ToastState[]>([]);
   const toastIdRef = useRef(0);
+  const { fetchUserProfile } = useUserData();
 
   useMobileWebRedirect();
 
@@ -191,18 +194,17 @@ export default function LoginScreen() {
         password: password,
       });
 
-      if (response.success) {
-        showToast("success", "Success", response.message);
-      } else {
+      if (!response.success) {
         showToast("error", "Login Failed", response.message);
+        setLoading(false);
       }
+      // On success, allow AuthLayout/Index to handle navigation
     } catch (error: any) {
       showToast(
         "error",
         "Error",
         error?.message || "Unexpected error occurred."
       );
-    } finally {
       setLoading(false);
     }
   };

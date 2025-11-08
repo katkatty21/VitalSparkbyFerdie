@@ -26,20 +26,25 @@ export default function StepBar({
   animationDuration = 300,
   animationStagger = 40,
 }: StepBarProps) {
-  const animatedValues = useRef(
-    Array.from({ length: totalSteps }, () => new Animated.Value(0))
-  ).current;
-
-  // Track previous step to decide stagger direction
+  const animatedValuesRef = useRef<Animated.Value[]>([]);
   const prevStepRef = useRef<number>(currentStep);
+  const prevTotalStepsRef = useRef<number>(totalSteps);
+
+  // Ensure we have the right number of animated values
+  if (
+    animatedValuesRef.current.length !== totalSteps ||
+    prevTotalStepsRef.current !== totalSteps
+  ) {
+    animatedValuesRef.current = Array.from(
+      { length: totalSteps },
+      (_, i) => animatedValuesRef.current[i] || new Animated.Value(0)
+    );
+    prevTotalStepsRef.current = totalSteps;
+  }
+
+  const animatedValues = animatedValuesRef.current;
 
   useEffect(() => {
-    // If totalSteps prop ever changes across renders, ensure we have enough animated values
-    if (animatedValues.length !== totalSteps) {
-      // Note: In typical onboarding, totalSteps stays stable. If needed, this
-      // could be extended to push new Animated.Values to match totalSteps.
-    }
-
     const isForward = currentStep >= prevStepRef.current;
     const indices = Array.from({ length: totalSteps }, (_, i) => i);
     const ordered = isForward ? indices : indices.reverse();
@@ -75,6 +80,24 @@ export default function StepBar({
     >
       {Array.from({ length: totalSteps }, (_, index) => {
         const animatedValue = animatedValues[index];
+
+        // Safety check to prevent undefined interpolate errors
+        if (!animatedValue) {
+          return (
+            <View
+              key={index}
+              style={{
+                width: stepWidth,
+                height: stepHeight,
+                borderRadius,
+                backgroundColor:
+                  index < currentStep ? activeColor : inactiveColor,
+                marginRight: index !== totalSteps - 1 ? spacing : 0,
+              }}
+            />
+          );
+        }
+
         return (
           <Animated.View
             key={index}

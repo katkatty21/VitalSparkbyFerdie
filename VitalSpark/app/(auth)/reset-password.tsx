@@ -360,7 +360,7 @@ export default function ResetPasswordScreen() {
         "Your session has expired. Please request a new reset link."
       );
       setTimeout(() => {
-        router.push("/(auth)/login");
+        router.replace("/(auth)/login");
       }, 2000);
       return;
     }
@@ -373,11 +373,15 @@ export default function ResetPasswordScreen() {
         showToast(
           "success",
           "Password Reset",
-          "Your password has been reset successfully!"
+          "Your password has been reset successfully! Please login with your new password."
         );
+
+        // Sign out the recovery session and redirect to login
+        await auth.signOut();
+
         setTimeout(() => {
-          router.push("/(auth)/login");
-        }, 2000);
+          router.replace("/(auth)/login");
+        }, 2500);
       } else {
         showToast("error", "Reset Failed", response.message);
       }
