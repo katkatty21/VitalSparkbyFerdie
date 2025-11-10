@@ -106,7 +106,6 @@ export default function DietaryOnboarding() {
   const isWeb = Platform.OS === "web";
   const isMobile = !isWeb;
 
-  // More aggressive scaling for devices < 1280
   const getScaleFactor = () => {
     if (!isWeb) return 1;
     if (screenWidth >= 1280) return 1;
@@ -116,11 +115,9 @@ export default function DietaryOnboarding() {
   };
   const scaleFactor = getScaleFactor();
 
-  // Use window.innerHeight on web to account for browser chrome
   const viewportHeight =
     isWeb && typeof window !== "undefined" ? window.innerHeight : screenHeight;
 
-  // Responsive sizing based on viewport
   const isSmallViewport = viewportHeight < 700;
   const isSmallWeb = isWeb && screenWidth < 1280;
 
@@ -143,7 +140,6 @@ export default function DietaryOnboarding() {
         ? 14
         : 16;
 
-  // Handle dimension changes (window resize)
   useEffect(() => {
     const subscription = Dimensions.addEventListener("change", ({ window }) => {
       setDimensions({ width: window.width, height: window.height });
@@ -152,7 +148,6 @@ export default function DietaryOnboarding() {
     return () => subscription?.remove();
   }, []);
 
-  // Preload existing dietary data
   useEffect(() => {
     if (userProfile) {
       if (userProfile.dietary_preference) {
@@ -171,7 +166,6 @@ export default function DietaryOnboarding() {
         userProfile.health_conditions &&
         userProfile.health_conditions.length > 0
       ) {
-        // Separate standard conditions from custom (other) conditions
         const standardConditions = healthConditionOptions.map((c) => c.code);
         const standard = userProfile.health_conditions.filter((c) =>
           standardConditions.includes(c)
@@ -215,7 +209,6 @@ export default function DietaryOnboarding() {
     setOtherHealthConditions((prev) => prev.filter((c) => c !== condition));
   };
 
-  // Local-only affirmation generation (no supabase)
   const generateDietaryAffirmation = () => {
     const selectedConditionsList = [
       ...selectedHealthConditions.filter((c) => c !== "other"),
@@ -251,7 +244,6 @@ export default function DietaryOnboarding() {
     }
   };
 
-  // Show affirmation shortly after first health condition is selected
   useEffect(() => {
     if (selectedHealthConditions.length > 0 && !firstHealthConditionSelected) {
       setFirstHealthConditionSelected(true);
@@ -284,10 +276,8 @@ export default function DietaryOnboarding() {
     setBusy(true);
     setError(null);
     try {
-      // Save dietary data to user profile if user is authenticated
       const { data: user } = await auth.getCurrentUser();
       if (user) {
-        // Prepare health conditions list
         const healthConditionsList = [
           ...selectedHealthConditions.filter((c) => c !== "other"),
           ...(selectedHealthConditions.includes("other")
@@ -361,7 +351,6 @@ export default function DietaryOnboarding() {
         </View>
       ) : (
         <>
-          {/* Dietary Preference */}
           <View style={{ marginBottom: isMobile ? 24 : 32 }}>
             <Text
               style={{
@@ -812,7 +801,6 @@ export default function DietaryOnboarding() {
             )}
           </View>
 
-          {/* Affirmation */}
           {affirmation &&
             showAffirmation &&
             selectedHealthConditions.length > 0 && (
@@ -838,7 +826,6 @@ export default function DietaryOnboarding() {
               </Animated.View>
             )}
 
-          {/* Continue */}
           <TouchableOpacity
             style={{
               width: "100%",

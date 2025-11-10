@@ -89,7 +89,6 @@ export default function HeightOnboarding() {
   const { upsertUserProfile } = useUserData();
   const { userProfile } = useUserContext();
 
-  // Use refs to avoid recreating scroll handler
   const heightRef = useRef(height);
   const unitRef = useRef(unit);
 
@@ -110,7 +109,6 @@ export default function HeightOnboarding() {
   const RULER_CENTER_OFFSET = screenWidth / 2;
   const [centerOffset, setCenterOffset] = useState<number>(RULER_CENTER_OFFSET);
 
-  // More aggressive scaling for devices < 1280
   const getScaleFactor = () => {
     if (!isWeb) return 1;
     if (screenWidth >= 1280) return 1;
@@ -120,11 +118,9 @@ export default function HeightOnboarding() {
   };
   const scaleFactor = getScaleFactor();
 
-  // Use window.innerHeight on web to account for browser chrome
   const viewportHeight =
     isWeb && typeof window !== "undefined" ? window.innerHeight : screenHeight;
 
-  // Responsive sizing based on viewport
   const isSmallViewport = viewportHeight < 700;
   const topMargin = isSmallViewport
     ? isWeb && screenWidth < 1280
@@ -134,7 +130,6 @@ export default function HeightOnboarding() {
   const titleSize = isSmallViewport ? 22 : 26;
   const subtitleSize = isSmallViewport ? 14 : 16;
 
-  // Handle dimension changes (window resize)
   useEffect(() => {
     const subscription = Dimensions.addEventListener("change", ({ window }) => {
       setDimensions({ width: window.width, height: window.height });
@@ -152,7 +147,6 @@ export default function HeightOnboarding() {
     return inches * RULER_ITEM_WIDTH;
   };
 
-  // Preload existing height data
   useEffect(() => {
     if (userProfile && userProfile.height) {
       const loadedHeight = userProfile.height;
@@ -161,7 +155,6 @@ export default function HeightOnboarding() {
       setHeight(loadedHeight);
       setUnit(loadedUnit);
 
-      // For web, set input value immediately
       if (isWeb) {
         if (loadedUnit === "cm") {
           setInputValue(Math.round(loadedHeight).toString());
@@ -172,7 +165,6 @@ export default function HeightOnboarding() {
         }
       }
 
-      // For mobile, scroll ruler to correct position
       if (!isWeb) {
         requestAnimationFrame(() => {
           const targetX = getOffsetForHeight(loadedHeight, loadedUnit);
@@ -187,7 +179,6 @@ export default function HeightOnboarding() {
     setBusy(true);
     setError(null);
     try {
-      // Save height data to user profile if user is authenticated
       const { data: user } = await auth.getCurrentUser();
       if (user) {
         const result = await upsertUserProfile({
@@ -274,7 +265,6 @@ export default function HeightOnboarding() {
       newHeightCm = inchesClamped * 2.54;
     }
 
-    // Only update if changed by at least 1 unit to reduce re-renders
     const currentHeight = heightRef.current;
     if (Math.abs(newHeightCm - currentHeight) >= 1) {
       setHeight(newHeightCm);
@@ -322,7 +312,6 @@ export default function HeightOnboarding() {
     }
   };
 
-  // Update web input when height or unit changes
   useEffect(() => {
     if (isWeb) {
       if (height > 0) {
@@ -345,7 +334,6 @@ export default function HeightOnboarding() {
     setUnit(newUnit);
 
     if (!isWeb && currentHeight > 0) {
-      // Use requestAnimationFrame for smoother transition
       requestAnimationFrame(() => {
         requestAnimationFrame(() => {
           const targetX = getOffsetForHeight(currentHeight, newUnit);
@@ -408,7 +396,6 @@ export default function HeightOnboarding() {
               showsVerticalScrollIndicator={false}
               keyboardShouldPersistTaps="handled"
             >
-              {/* Header Section */}
               <View style={{ marginTop: topMargin, marginBottom: 24 }}>
                 <Text
                   style={{
@@ -435,7 +422,6 @@ export default function HeightOnboarding() {
                 </Text>
               </View>
 
-              {/* Unit Switcher */}
               <View
                 style={{
                   flexDirection: "row",
@@ -483,7 +469,6 @@ export default function HeightOnboarding() {
                 </TouchableOpacity>
               </View>
 
-              {/* Height Display */}
               <View
                 style={{
                   alignItems: "center",
@@ -519,7 +504,6 @@ export default function HeightOnboarding() {
                 )}
               </View>
 
-              {/* Ruler or Web Input */}
               {isWeb ? (
                 <View
                   style={{
@@ -631,8 +615,6 @@ export default function HeightOnboarding() {
                 </Text>
               )}
             </ScrollView>
-
-            {/* Fixed Continue Button at Bottom */}
             <View style={{ paddingBottom: isSmallViewport ? 0 : 8 }}>
               <TouchableOpacity
                 disabled={busy || !(height > 0)}

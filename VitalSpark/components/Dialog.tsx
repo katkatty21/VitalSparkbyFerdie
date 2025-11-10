@@ -1,6 +1,15 @@
 import { Ionicons } from "@expo/vector-icons";
-import { ReactNode } from "react";
-import { Platform, Pressable, ScrollView, View } from "react-native";
+import { ReactNode, useRef, useState } from "react";
+import {
+  Platform,
+  Pressable,
+  ScrollView,
+  View,
+  Dimensions,
+  Animated,
+  LayoutChangeEvent,
+} from "react-native";
+import ScrollBar from "./ScrollBar";
 
 export interface DialogProps {
   visible: boolean;
@@ -10,6 +19,9 @@ export interface DialogProps {
   maxWidth?: number;
   maxHeight?: number;
   showCloseButton?: boolean;
+  contentPadding?:
+    | number
+    | { top?: number; right?: number; bottom?: number; left?: number };
 }
 
 export default function Dialog({
@@ -20,16 +32,35 @@ export default function Dialog({
   maxWidth = 450,
   maxHeight = 600,
   showCloseButton = true,
+  contentPadding,
 }: DialogProps) {
+  const [contentHeight, setContentHeight] = useState(0);
+  const [containerHeight, setContainerHeight] = useState(0);
+  const scrollY = useRef(new Animated.Value(0)).current;
+
   if (!visible) return null;
+
+  const handleScroll = Animated.event(
+    [{ nativeEvent: { contentOffset: { y: scrollY } } }],
+    { useNativeDriver: false }
+  );
+
+  const handleContentSizeChange = (width: number, height: number) => {
+    setContentHeight(height);
+  };
+
+  const handleLayout = (event: LayoutChangeEvent) => {
+    setContainerHeight(event.nativeEvent.layout.height);
+  };
 
   // Responsive sizing based on viewport width
   const getResponsiveValues = () => {
     if (Platform.OS !== "web") {
       return {
         scale: 1,
-        padding: 90,
-        maxWidthPercentage: 0.9,
+        padding: 16,
+        maxWidthPercentage: 0.92,
+        maxHeightPercentage: 0.8,
       };
     }
 
@@ -74,10 +105,28 @@ export default function Dialog({
     }
   };
 
+  const getContentPadding = () => {
+    if (contentPadding === undefined) {
+      return { padding: 24 * scale };
+    }
+    if (typeof contentPadding === "number") {
+      return { padding: contentPadding * scale };
+    }
+    return {
+      paddingTop: (contentPadding.top ?? 24) * scale,
+      paddingRight: (contentPadding.right ?? 24) * scale,
+      paddingBottom: (contentPadding.bottom ?? 24) * scale,
+      paddingLeft: (contentPadding.left ?? 24) * scale,
+    };
+  };
+
   const calculatedMaxWidth =
     Platform.OS === "web" && typeof window !== "undefined"
       ? Math.min(maxWidth * scale, window.innerWidth * maxWidthPercentage)
-      : maxWidth * scale;
+      : Math.min(
+          maxWidth * scale,
+          Dimensions.get("window").width * maxWidthPercentage
+        );
 
   const calculatedMaxHeight =
     Platform.OS === "web" && typeof window !== "undefined"
@@ -85,7 +134,10 @@ export default function Dialog({
           maxHeight * scale,
           window.innerHeight * (maxHeightPercentage || 0.9)
         )
-      : maxHeight * scale;
+      : Math.min(
+          maxHeight * scale,
+          Dimensions.get("window").height * (maxHeightPercentage || 0.9)
+        );
 
   return (
     <View
@@ -95,11 +147,15 @@ export default function Dialog({
         left: 0,
         right: 0,
         bottom: 0,
-        backgroundColor: "rgba(0, 0, 0, 0.5)",
+        backgroundColor: "rgba(0, 0, 0, 0.6)",
         justifyContent: "center",
         alignItems: "center",
-        zIndex: 1000,
+        zIndex: 999999,
+        elevation: 999999,
         padding: padding * scale,
+        ...(Platform.OS === "web" && {
+          position: "fixed" as any,
+        }),
       }}
     >
       {/* Backdrop */}
@@ -111,6 +167,7 @@ export default function Dialog({
           left: 0,
           right: 0,
           bottom: 0,
+          zIndex: 1,
         }}
       />
 
@@ -120,12 +177,18 @@ export default function Dialog({
           backgroundColor: "white",
           borderRadius: 16 * scale,
           maxWidth: calculatedMaxWidth,
-          maxHeight: calculatedMaxHeight,
+          ...(Platform.OS === "web"
+            ? { maxHeight: calculatedMaxHeight }
+            : { height: calculatedMaxHeight }),
           width: "100%",
           shadowColor: "#000",
           shadowOffset: { width: 0, height: 4 },
           shadowOpacity: 0.3,
           shadowRadius: 8,
+          zIndex: 2,
+          elevation: 10,
+          overflow: "hidden",
+          position: "relative",
           ...(Platform.OS === "web" && {
             // @ts-ignore - web only
             boxShadow: "0 4px 16px rgba(0, 0, 0, 0.2)",
@@ -154,16 +217,37 @@ export default function Dialog({
           </Pressable>
         )}
 
-        <ScrollView
-          contentContainerStyle={{
-            padding: 24 * scale,
-            flexGrow: 1,
+        <View
+          style={{
+            flex: Platform.OS !== "web" ? 1 : undefined,
+            position: "relative",
           }}
-          showsVerticalScrollIndicator={false}
-          bounces={false}
         >
-          {children}
-        </ScrollView>
+          <ScrollView
+            style={{
+              flex: 1,
+            }}
+            contentContainerStyle={getContentPadding()}
+            showsVerticalScrollIndicator={false}
+            bounces={true}
+            onScroll={handleScroll}
+            scrollEventThrottle={16}
+            onContentSizeChange={handleContentSizeChange}
+            onLayout={handleLayout}
+          >
+            {children}
+          </ScrollView>
+
+          {/* Custom ScrollBar */}
+          {Platform.OS !== "web" && (
+            <ScrollBar
+              contentHeight={contentHeight}
+              containerHeight={containerHeight}
+              scrollY={scrollY}
+              visible={contentHeight > containerHeight}
+            />
+          )}
+        </View>
       </View>
     </View>
   );

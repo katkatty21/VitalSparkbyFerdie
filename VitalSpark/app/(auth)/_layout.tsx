@@ -8,11 +8,10 @@ export default function AuthLayout() {
   const router = useRouter();
   const segments = useSegments();
   const hasRedirectedRef = useRef(false);
+  const currentRoute = segments[1];
 
-  // Get current route within auth group
-  const currentRoute = segments[1]; // (auth)/[currentRoute]
 
-  // Don't redirect if on special auth pages that need to handle auth flows
+
   const specialAuthPages = ["callback", "reset-password", "email-verify"];
 
   const isSpecialPage = currentRoute && specialAuthPages.includes(currentRoute);
@@ -25,11 +24,9 @@ export default function AuthLayout() {
 
   useEffect(() => {
     if (isSpecialPage) {
-      return; // Allow special pages to handle their own logic
+      return;
     }
 
-    // Redirect authenticated users away from login/signup/forgot-password immediately
-    // Only redirect if we're actually on an auth page (not already navigating)
     if (
       !isLoading &&
       isAuthenticated &&
@@ -41,8 +38,6 @@ export default function AuthLayout() {
     }
   }, [isAuthenticated, isLoading, isSpecialPage, currentRoute]);
 
-  // Show loading screen while checking authentication
-  // This prevents flash of login page when user is already authenticated
   if (isLoading) {
     return (
       <View
@@ -58,7 +53,6 @@ export default function AuthLayout() {
     );
   }
 
-  // If authenticated and not on special page, show loader while redirecting
   if (isAuthenticated && !isSpecialPage) {
     return (
       <View

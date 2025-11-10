@@ -87,7 +87,6 @@ export default function MoodOnboarding() {
 
   useMobileWebRedirect();
 
-  // More aggressive scaling for devices < 1280
   const getScaleFactor = () => {
     if (!isWeb) return 1;
     if (screenWidth >= 1280) return 1;
@@ -97,11 +96,9 @@ export default function MoodOnboarding() {
   };
   const scaleFactor = getScaleFactor();
 
-  // Use window.innerHeight on web to account for browser chrome
   const viewportHeight =
     isWeb && typeof window !== "undefined" ? window.innerHeight : screenHeight;
 
-  // Responsive sizing based on viewport
   const isSmallViewport = viewportHeight < 700;
   const topMargin = isSmallViewport
     ? isWeb && screenWidth < 1280
@@ -115,7 +112,6 @@ export default function MoodOnboarding() {
   const moodEmojiSize = isSmallViewport ? 26 : 30;
   const moodLabelSize = isSmallViewport ? 13 : 14;
 
-  // Handle dimension changes (window resize)
   useEffect(() => {
     const subscription = Dimensions.addEventListener("change", ({ window }) => {
       setDimensions({ width: window.width, height: window.height });
@@ -173,7 +169,6 @@ export default function MoodOnboarding() {
     };
   }, [initializing, loadingState.isLoading, userProfile, fetchUserProfile]);
 
-  // Generate affirmation locally when mood changes (no remote calls)
   useEffect(() => {
     if (selectedMood) {
       const userProfileData = {
@@ -204,7 +199,6 @@ export default function MoodOnboarding() {
     setBusy(true);
     setError(null);
     try {
-      // Save mood to user profile if user is authenticated
       const { data: user } = await auth.getCurrentUser();
       if (user && selectedMood) {
         const result = await upsertUserProfile({
@@ -234,7 +228,7 @@ export default function MoodOnboarding() {
 
   const onBack = () => {
     setHeader({ animation: "slide_from_left" });
-    router.push("/(onboarding)/language"); // keep routing only
+    router.push("/(onboarding)/language");
   };
 
   const onNext = () => {
@@ -288,9 +282,7 @@ export default function MoodOnboarding() {
                 : null,
             ]}
           >
-            {/* Scrollable content area */}
             <View style={{ flex: 1, justifyContent: "space-between" }}>
-              {/* Header Section */}
               <View style={{ marginTop: topMargin }}>
                 <Text
                   style={{
@@ -327,7 +319,6 @@ export default function MoodOnboarding() {
                 )}
               </View>
 
-              {/* Content Section - Centered */}
               <View
                 style={{
                   flex: 1,
@@ -351,7 +342,6 @@ export default function MoodOnboarding() {
                   </View>
                 ) : (
                   <View style={{ alignItems: "center", width: "100%" }}>
-                    {/* Mood Buttons */}
                     <>
                       <View
                         style={{
@@ -496,7 +486,6 @@ export default function MoodOnboarding() {
                       </View>
                     </>
 
-                    {/* Affirmation - In the middle between mood buttons and continue button */}
                     {affirmation && (
                       <Animated.View
                         style={{
@@ -525,8 +514,7 @@ export default function MoodOnboarding() {
                   </View>
                 )}
               </View>
-
-              {/* Fixed Continue Button at Bottom */}
+                    
               <View style={{ paddingBottom: isSmallViewport ? 0 : 8 }}>
                 <TouchableOpacity
                   disabled={busy || !selectedMood || isLoadingProfile}

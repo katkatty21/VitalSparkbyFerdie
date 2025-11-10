@@ -1,12 +1,12 @@
-import { Redirect, useRouter } from "expo-router";
+import { Redirect } from "expo-router";
 import { useEffect, useState, useMemo } from "react";
-import { Platform, Dimensions, View, ActivityIndicator } from "react-native";
+import { Platform, View, ActivityIndicator } from "react-native";
 import { useAuth } from "../contexts/AuthContext";
 import { supabase } from "../utils/supabase";
+import "../global.css";
 
 export default function Index() {
   const { isAuthenticated, isLoading: authLoading, user } = useAuth();
-  const router = useRouter();
   const [redirectPath, setRedirectPath] = useState<string | null>(null);
 
   // Memoize mobile web check - only runs once

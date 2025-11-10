@@ -143,7 +143,6 @@ export default function FitnessOnboarding() {
   const isWeb = Platform.OS === "web";
   const isMobile = !isWeb;
 
-  // More aggressive scaling for devices < 1280
   const getScaleFactor = () => {
     if (!isWeb) return 1;
     if (screenWidth >= 1280) return 1;
@@ -153,11 +152,9 @@ export default function FitnessOnboarding() {
   };
   const scaleFactor = getScaleFactor();
 
-  // Use window.innerHeight on web to account for browser chrome
   const viewportHeight =
     isWeb && typeof window !== "undefined" ? window.innerHeight : screenHeight;
 
-  // Responsive sizing based on viewport
   const isSmallViewport = viewportHeight < 700;
   const isSmallWeb = isWeb && screenWidth < 1280;
 
@@ -180,7 +177,6 @@ export default function FitnessOnboarding() {
         ? 14
         : 16;
 
-  // Handle dimension changes (window resize)
   useEffect(() => {
     const subscription = Dimensions.addEventListener("change", ({ window }) => {
       setDimensions({ width: window.width, height: window.height });
@@ -202,7 +198,6 @@ export default function FitnessOnboarding() {
         setSelectedLocation(userProfile.workout_location);
       }
       if (userProfile.equipment_list && userProfile.equipment_list.length > 0) {
-        // Separate standard equipment from custom (other) equipment
         const standardEquipment = homeEquipmentOptions
           .map((eq) => eq.code)
           .concat(gymEquipmentOptions.map((eq) => eq.code));
@@ -238,7 +233,6 @@ export default function FitnessOnboarding() {
     }
   }, [userProfile]);
 
-  // Reset affirmation if user clears all days
   useEffect(() => {
     const hasSelectedDays = weeklyFrequency.some((d) => d.selected);
     if (!hasSelectedDays) {
@@ -376,19 +370,15 @@ export default function FitnessOnboarding() {
     setBusy(true);
     setError(null);
     try {
-      // Generate a final affirmation once before moving on (optional UX)
       if (!affirmation) generateLocalAffirmation();
 
-      // Save fitness data to user profile if user is authenticated
       const { data: user } = await auth.getCurrentUser();
       if (user) {
-        // Prepare equipment list
         const equipmentList = [
           ...selectedEquipments.filter((eq) => eq !== "other"),
           ...(selectedEquipments.includes("other") ? otherEquipments : []),
         ];
 
-        // Prepare selected days
         const selectedDays = weeklyFrequency
           .filter((d) => d.selected)
           .map((d) => d.code);
@@ -471,7 +461,6 @@ export default function FitnessOnboarding() {
         </View>
       ) : (
         <>
-          {/* Fitness Goal */}
           <View
             style={{
               marginBottom: showFitnessGoalDropdown ? 0 : isMobile ? 24 : 32,

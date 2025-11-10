@@ -49,7 +49,6 @@ export default function LocationOnboarding() {
   const screenHeight = dimensions.height;
   const isWeb = Platform.OS === "web";
 
-  // More aggressive scaling for devices < 1280
   const getScaleFactor = () => {
     if (!isWeb) return 1;
     if (screenWidth >= 1280) return 1;
@@ -59,11 +58,9 @@ export default function LocationOnboarding() {
   };
   const scaleFactor = getScaleFactor();
 
-  // Use window.innerHeight on web to account for browser chrome
   const viewportHeight =
     isWeb && typeof window !== "undefined" ? window.innerHeight : screenHeight;
 
-  // Responsive sizing based on viewport
   const isSmallViewport = viewportHeight < 700;
   const topMargin = isSmallViewport
     ? isWeb && screenWidth < 1280
@@ -73,7 +70,6 @@ export default function LocationOnboarding() {
   const titleSize = isSmallViewport ? 22 : 26;
   const subtitleSize = isSmallViewport ? 14 : 16;
 
-  // Handle dimension changes (window resize)
   useEffect(() => {
     const subscription = Dimensions.addEventListener("change", ({ window }) => {
       setDimensions({ width: window.width, height: window.height });
@@ -82,7 +78,6 @@ export default function LocationOnboarding() {
     return () => subscription?.remove();
   }, []);
 
-  // Init from local JSON only (no persistence)
   useEffect(() => {
     try {
       const countryNames = countriesData.map((c) => c.name);
@@ -99,7 +94,6 @@ export default function LocationOnboarding() {
     if (userProfile) {
       if (userProfile.country) {
         setSelectedCountry(userProfile.country);
-        // Load states for the selected country
         try {
           const countrySubdivisions =
             subdivisionsData[
@@ -128,7 +122,6 @@ export default function LocationOnboarding() {
     setBusy(true);
     setError(null);
     try {
-      // Save location data to user profile if user is authenticated
       const { data: user } = await auth.getCurrentUser();
       if (user) {
         const result = await upsertUserProfile({
@@ -228,7 +221,6 @@ export default function LocationOnboarding() {
                     setStateSearch("");
                   }}
                 >
-                  {/* Header Section */}
                   <View style={{ marginTop: topMargin, marginBottom: 24 }}>
                     <Text
                       style={{
@@ -267,7 +259,6 @@ export default function LocationOnboarding() {
                     )}
                   </View>
 
-                  {/* Country */}
                   <View style={{ marginBottom: 24 }}>
                     <Text
                       style={{
@@ -426,7 +417,6 @@ export default function LocationOnboarding() {
                     </View>
                   </View>
 
-                  {/* Region/Province/State */}
                   <View style={{ marginBottom: 24 }}>
                     <Text
                       style={{
@@ -573,7 +563,6 @@ export default function LocationOnboarding() {
               </ScrollView>
             </KeyboardAvoidingView>
 
-            {/* Fixed Continue Button at Bottom */}
             <View style={{ paddingBottom: isSmallViewport ? 0 : 8 }}>
               <TouchableOpacity
                 disabled={busy || !isValid}

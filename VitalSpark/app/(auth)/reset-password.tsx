@@ -18,7 +18,6 @@ import {
 } from "react-native";
 import Animated, { FadeInLeft, FadeOutLeft } from "react-native-reanimated";
 import { SafeAreaView } from "react-native-safe-area-context";
-import * as Linking from "expo-linking";
 import { useURL } from "expo-linking";
 import { auth } from "../../hooks/useAuth";
 import Toast, { ToastProps } from "../../components/Toast";
@@ -35,7 +34,7 @@ const showAlert = (title: string, message: string) =>
 export default function ResetPasswordScreen() {
   const router = useRouter();
   const params = useLocalSearchParams();
-  const url = useURL(); // Hook to get the URL that opened the app
+  const url = useURL();
   const scrollViewRef = useRef<ScrollView>(null);
   const passwordInputRef = useRef<View>(null);
   const confirmPasswordInputRef = useRef<View>(null);
@@ -71,7 +70,6 @@ export default function ResetPasswordScreen() {
     });
   }, [password]);
 
-  // Check if passwords match in real-time
   useEffect(() => {
     if (confirmPassword.length > 0) {
       setPasswordsMatch(password === confirmPassword && password.length > 0);
@@ -276,7 +274,6 @@ export default function ResetPasswordScreen() {
     if (Platform.OS === "web" && typeof document !== "undefined") {
       const style = document.createElement("style");
       style.textContent = `
-        /* Remove autofill background color */
         input:-webkit-autofill,
         input:-webkit-autofill:hover,
         input:-webkit-autofill:focus,
@@ -287,19 +284,16 @@ export default function ResetPasswordScreen() {
           box-shadow: inset 0 0 20px 20px white !important;
         }
         
-        /* Remove focus outline rings */
         input:focus,
         textarea:focus,
         select:focus {
           outline: none !important;
         }
         
-        /* Prevent blue highlight on tap for mobile web */
         * {
           -webkit-tap-highlight-color: transparent;
         }
         
-        /* Remove password reveal eye icon (Edge, Chrome, Safari) */
         input[type="password"]::-ms-reveal,
         input[type="password"]::-ms-clear {
           display: none !important;
@@ -376,7 +370,6 @@ export default function ResetPasswordScreen() {
           "Your password has been reset successfully! Please login with your new password."
         );
 
-        // Sign out the recovery session and redirect to login
         await auth.signOut();
 
         setTimeout(() => {

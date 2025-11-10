@@ -3,8 +3,7 @@ import { View, Text } from "react-native";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
-import { SafeAreaView } from "react-native-safe-area-context";
-import { supabase, clearAuthStorage } from "../../utils/supabase";
+import { clearAuthStorage } from "../../utils/supabase";
 
 export default function EmailVerify() {
   const router = useRouter();
@@ -52,7 +51,6 @@ export default function EmailVerify() {
           paddingHorizontal: 20,
         }}
       >
-        {/* Icon Circle */}
         <View
           style={{
             width: 120,
@@ -71,7 +69,6 @@ export default function EmailVerify() {
           )}
         </View>
 
-        {/* Title */}
         <Text
           style={{
             fontSize: 28,
@@ -84,7 +81,6 @@ export default function EmailVerify() {
           {isSuccess ? "Email Verified!" : "Verification Issue"}
         </Text>
 
-        {/* Message */}
         <Text
           style={{
             fontSize: 16,
@@ -102,7 +98,6 @@ export default function EmailVerify() {
               "An error occurred during verification.\nPlease try signing in or contact support."}
         </Text>
 
-        {/* Countdown */}
         <View
           style={{
             backgroundColor: "rgba(255, 255, 255, 0.2)",

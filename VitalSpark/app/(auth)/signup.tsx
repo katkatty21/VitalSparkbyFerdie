@@ -135,7 +135,6 @@ export default function SignUpScreen() {
     if (Platform.OS === "web" && typeof document !== "undefined") {
       const style = document.createElement("style");
       style.textContent = `
-        /* Remove autofill background color */
         input:-webkit-autofill,
         input:-webkit-autofill:hover,
         input:-webkit-autofill:focus,
@@ -146,19 +145,16 @@ export default function SignUpScreen() {
           box-shadow: inset 0 0 20px 20px white !important;
         }
         
-        /* Remove focus outline rings */
         input:focus,
         textarea:focus,
         select:focus {
           outline: none !important;
         }
         
-        /* Prevent blue highlight on tap for mobile web */
         * {
           -webkit-tap-highlight-color: transparent;
         }
         
-        /* Remove password reveal eye icon (Edge, Chrome, Safari) */
         input[type="password"]::-ms-reveal,
         input[type="password"]::-ms-clear {
           display: none !important;

@@ -45,7 +45,7 @@ export function useMobileWebRedirect(enabled: boolean = true) {
     }, 100);
 
     return () => clearTimeout(timer);
-  }, [enabled, pathname, segments, hasChecked, router]);
+  }, [enabled, pathname, segments, hasChecked]);
 }
 
 /**
@@ -97,7 +97,7 @@ export function useDesktopWebRedirect() {
     }, 100);
 
     return () => clearTimeout(timer);
-  }, [pathname, segments, hasChecked, router]);
+  }, [pathname, segments, hasChecked]);
 }
 
 /**

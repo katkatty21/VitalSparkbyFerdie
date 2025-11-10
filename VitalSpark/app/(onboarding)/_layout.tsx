@@ -9,7 +9,7 @@ function OnboardingLayout() {
   const segments = useSegments();
   const { headerConfig } = useOnboardingHeader();
 
-  // Determine current step based on route if not set in headerConfig
+  // Determine current step
   const currentRoute = segments[segments.length - 1];
   const routeStepMap: Record<string, number> = {
     language: 1,
@@ -25,7 +25,6 @@ function OnboardingLayout() {
   };
 
   const currentStep = useMemo(() => {
-    // Use headerConfig.currentStep if explicitly set, otherwise derive from route
     if (headerConfig.currentStep) {
       return headerConfig.currentStep;
     }
@@ -33,9 +32,8 @@ function OnboardingLayout() {
   }, [headerConfig.currentStep, currentRoute]);
 
   const handleBack = () => {
-    // Only allow back navigation if canGoBack is not explicitly false
     if (headerConfig.canGoBack === false) {
-      return; // Do nothing if back is disabled
+      return;
     }
 
     if (headerConfig.onBack) {
@@ -45,10 +43,8 @@ function OnboardingLayout() {
     }
   };
 
-  // Get animation from headerConfig, default to slide_from_right
   const animation = headerConfig.animation || "slide_from_right";
 
-  // Hide header on finish screen
   const showHeader = currentRoute !== "finish";
 
   return (

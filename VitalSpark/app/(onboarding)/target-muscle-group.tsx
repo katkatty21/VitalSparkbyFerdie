@@ -19,7 +19,6 @@ import { useUserContext } from "../../contexts/UserContext";
 import { auth } from "../../hooks/useAuth";
 import muscularDiagrams from "../../assets/images/Muscular";
 
-// Preload all muscular images based on gender to prevent flashing
 const preloadMuscularImages = (gender: string) => {
   const genderImages =
     gender === "female" ? muscularDiagrams.female : muscularDiagrams.male;
@@ -71,10 +70,8 @@ export default function TargetMuscleGroupOnboarding() {
   const screenHeight = dimensions.height;
   const isWeb = Platform.OS === "web";
 
-  // Get user gender for appropriate diagrams
   const userGender = userProfile?.gender === "female" ? "female" : "male";
 
-  // More aggressive scaling for devices < 1280
   const getScaleFactor = () => {
     if (!isWeb) return 1;
     if (screenWidth >= 1280) return 1;
@@ -84,11 +81,9 @@ export default function TargetMuscleGroupOnboarding() {
   };
   const scaleFactor = getScaleFactor();
 
-  // Use window.innerHeight on web to account for browser chrome
   const viewportHeight =
     isWeb && typeof window !== "undefined" ? window.innerHeight : screenHeight;
 
-  // Responsive sizing based on viewport
   const isSmallViewport = viewportHeight < 700;
   const isSmallWeb = isWeb && screenWidth < 768;
   const topMargin = isSmallViewport
@@ -99,7 +94,6 @@ export default function TargetMuscleGroupOnboarding() {
   const titleSize = isSmallViewport ? 22 : 26;
   const subtitleSize = isSmallViewport ? 14 : 16;
 
-  // Handle dimension changes (window resize)
   useEffect(() => {
     const subscription = Dimensions.addEventListener("change", ({ window }) => {
       setDimensions({ width: window.width, height: window.height });
@@ -108,7 +102,6 @@ export default function TargetMuscleGroupOnboarding() {
     return () => subscription?.remove();
   }, []);
 
-  // Preload existing target muscle groups
   useEffect(() => {
     if (userProfile && userProfile.target_muscle_groups) {
       setSelectedMuscles(userProfile.target_muscle_groups);
@@ -160,8 +153,7 @@ export default function TargetMuscleGroupOnboarding() {
     if (!isValid) return;
     setBusy(true);
     setError(null);
-    try {
-      // Save target muscle groups to user profile if user is authenticated
+    try { 
       const { data: user } = await auth.getCurrentUser();
       if (user) {
         const result = await upsertUserProfile({
@@ -250,7 +242,6 @@ export default function TargetMuscleGroupOnboarding() {
               showsVerticalScrollIndicator={false}
               keyboardShouldPersistTaps="handled"
             >
-              {/* Header Section */}
               <View style={{ marginTop: topMargin, marginBottom: 24 }}>
                 <Text
                   style={{
@@ -289,7 +280,6 @@ export default function TargetMuscleGroupOnboarding() {
                 )}
               </View>
 
-              {/* Content Container - Two Columns on larger screens */}
               <View
                 style={{
                   flexDirection: isSmallWeb ? "column" : "row",
@@ -301,7 +291,6 @@ export default function TargetMuscleGroupOnboarding() {
                   }),
                 }}
               >
-                {/* Left Column - Muscle Selection */}
                 <View
                   style={{
                     flex: 1,
@@ -407,7 +396,6 @@ export default function TargetMuscleGroupOnboarding() {
                   </View>
                 </View>
 
-                {/* Right Column - Muscle Diagram */}
                 {!isSmallWeb && (
                   <View
                     style={{
@@ -464,7 +452,6 @@ export default function TargetMuscleGroupOnboarding() {
               </View>
             </ScrollView>
 
-            {/* Fixed Continue Button at Bottom */}
             <View
               style={{
                 paddingBottom: isSmallViewport ? 0 : 8,
@@ -510,7 +497,6 @@ export default function TargetMuscleGroupOnboarding() {
           </View>
         </View>
       </View>
-      {/* Preload all muscular images to prevent flashing */}
       {preloadMuscularImages(userGender)}
     </SafeAreaView>
   );

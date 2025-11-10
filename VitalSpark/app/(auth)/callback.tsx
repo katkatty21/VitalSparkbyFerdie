@@ -3,7 +3,6 @@ import { View, ActivityIndicator, Text, Platform } from "react-native";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
 import { supabase } from "../../utils/supabase";
-import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function AuthCallback() {
   const router = useRouter();

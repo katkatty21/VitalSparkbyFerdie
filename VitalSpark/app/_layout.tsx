@@ -3,24 +3,38 @@ import { useEffect, useState } from "react";
 import { UserProvider } from "../contexts/UserContext";
 import { AuthProvider } from "../contexts/AuthContext";
 import { WorkoutProvider } from "../contexts/WorkoutContext";
+import { PlansProvider, usePlansContext } from "../contexts/PlansContext";
 import { useProtectedRoute } from "../hooks/useProtectedRoute";
 import { initI18n } from "../i18n";
 import { View, ActivityIndicator } from "react-native";
+import PlanDialog from "../components/PlanDialog";
+import "../global.css";
 
 function RootLayoutNav() {
   useProtectedRoute();
+  const { isPlanDialogVisible, hidePlanDialog, planDialogConfig } =
+    usePlansContext();
 
   return (
-    <Stack
-      screenOptions={{
-        headerShown: false,
-      }}
-    >
-      <Stack.Screen name="(auth)" />
-      <Stack.Screen name="(onboarding)" />
-      <Stack.Screen name="(tabs)" />
-      <Stack.Screen name="index" />
-    </Stack>
+    <>
+      <Stack
+        screenOptions={{
+          headerShown: false,
+        }}
+      >
+        <Stack.Screen name="(auth)" />
+        <Stack.Screen name="(onboarding)" />
+        <Stack.Screen name="(tabs)" />
+        <Stack.Screen name="index" />
+      </Stack>
+      <PlanDialog
+        visible={isPlanDialogVisible}
+        onDismiss={hidePlanDialog}
+        showAllPlans={planDialogConfig.showAllPlans}
+        highlightTier={planDialogConfig.highlightTier}
+        onPlanSelect={planDialogConfig.onPlanSelect}
+      />
+    </>
   );
 }
 
@@ -44,9 +58,11 @@ export default function RootLayout() {
   return (
     <AuthProvider>
       <UserProvider>
-        <WorkoutProvider>
-          <RootLayoutNav />
-        </WorkoutProvider>
+        <PlansProvider>
+          <WorkoutProvider>
+            <RootLayoutNav />
+          </WorkoutProvider>
+        </PlansProvider>
       </UserProvider>
     </AuthProvider>
   );

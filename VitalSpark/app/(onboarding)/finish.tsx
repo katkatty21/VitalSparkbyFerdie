@@ -30,13 +30,11 @@ export default function FinishOnboarding() {
   const [generatingMessage, setGeneratingMessage] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Animations
   const [fadeAnim] = useState(new Animated.Value(0));
   const [slideAnim] = useState(new Animated.Value(50));
   const [pulseAnim] = useState(new Animated.Value(1));
   const [sparkleAnim] = useState(new Animated.Value(0));
 
-  // Dimensions for responsiveness
   const [dimensions, setDimensions] = useState({
     width: Dimensions.get("window").width,
     height: Dimensions.get("window").height,
@@ -49,7 +47,6 @@ export default function FinishOnboarding() {
   const isWeb = Platform.OS === "web";
   const isMobile = !isWeb;
 
-  // Responsive scaling
   const getScaleFactor = () => {
     if (!isWeb) return 1;
     if (screenWidth >= 1280) return 1;
@@ -62,15 +59,10 @@ export default function FinishOnboarding() {
   const viewportHeight =
     isWeb && typeof window !== "undefined" ? window.innerHeight : screenHeight;
 
-  const isSmallViewport = viewportHeight < 700;
   const isSmallWeb = isWeb && screenWidth < 1280;
-  const isMediumWeb = isWeb && screenWidth >= 768 && screenWidth < 1024;
-
-  // Small mobile device detection
   const isSmallMobile = !isWeb && (screenWidth < 375 || screenHeight < 700);
   const isVerySmallMobile = !isWeb && (screenWidth < 360 || screenHeight < 650);
 
-  // Responsive sizing for mobile
   const titleFontSize = isVerySmallMobile
     ? 28
     : isSmallMobile
@@ -139,7 +131,6 @@ export default function FinishOnboarding() {
           ? 44
           : 52;
 
-  // Handle dimension changes
   useEffect(() => {
     const subscription = Dimensions.addEventListener("change", ({ window }) => {
       setDimensions({ width: window.width, height: window.height });
@@ -148,7 +139,6 @@ export default function FinishOnboarding() {
     return () => subscription?.remove();
   }, []);
 
-  // Fallback motivation generator
   const createFallbackMotivation = (
     name: string,
     mood?: string,
@@ -275,7 +265,6 @@ export default function FinishOnboarding() {
     };
 
     generateMotivation();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     i18n.language,
     userProfile?.nickname,
@@ -388,7 +377,6 @@ export default function FinishOnboarding() {
         end={{ x: 1, y: 1 }}
         style={{ flex: 1 }}
       >
-        {/* Decorative glows */}
         <View
           pointerEvents="none"
           style={{
@@ -468,7 +456,6 @@ export default function FinishOnboarding() {
                     minHeight: isWeb ? viewportHeight - 200 : undefined,
                   }}
                 >
-                  {/* Header */}
                   <Animated.View
                     style={{
                       opacity: fadeAnim,
@@ -487,7 +474,6 @@ export default function FinishOnboarding() {
                       position: "relative",
                     }}
                   >
-                    {/* Sparkle */}
                     <Animated.View
                       style={{
                         opacity: sparkleAnim,
@@ -588,7 +574,6 @@ export default function FinishOnboarding() {
                     </Text>
                   </Animated.View>
 
-                  {/* Motivational Message */}
                   {(motivationalMessage || generatingMessage) && (
                     <Animated.View
                       style={{
@@ -677,7 +662,6 @@ export default function FinishOnboarding() {
                     </Animated.View>
                   )}
 
-                  {/* Review Reminder */}
                   <Animated.View
                     style={{
                       opacity: fadeAnim,
@@ -745,7 +729,6 @@ export default function FinishOnboarding() {
                     </View>
                   </Animated.View>
 
-                  {/* Review Button */}
                   <Animated.View
                     style={{
                       opacity: fadeAnim,
@@ -827,7 +810,6 @@ export default function FinishOnboarding() {
                     </TouchableOpacity>
                   </Animated.View>
 
-                  {/* Error */}
                   {error && (
                     <Animated.View
                       style={{ opacity: fadeAnim, width: "100%", marginTop: 8 }}
@@ -854,7 +836,6 @@ export default function FinishOnboarding() {
                     </Animated.View>
                   )}
 
-                  {/* Footer note */}
                   <Animated.View
                     style={{
                       opacity: fadeAnim,
@@ -883,7 +864,6 @@ export default function FinishOnboarding() {
                     </Text>
                   </Animated.View>
 
-                  {/* Bottom Button */}
                   <Animated.View
                     style={{
                       opacity: fadeAnim,

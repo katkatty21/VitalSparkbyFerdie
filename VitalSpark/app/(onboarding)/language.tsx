@@ -57,7 +57,6 @@ export default function LanguageOnboarding() {
   const screenHeight = dimensions.height;
   const isWeb = Platform.OS === "web";
 
-  // More aggressive scaling for devices < 1280
   const getScaleFactor = () => {
     if (!isWeb) return 1;
     if (screenWidth >= 1280) return 1;
@@ -67,11 +66,9 @@ export default function LanguageOnboarding() {
   };
   const scaleFactor = getScaleFactor();
 
-  // Use window.innerHeight on web to account for browser chrome
   const viewportHeight =
     isWeb && typeof window !== "undefined" ? window.innerHeight : screenHeight;
 
-  // Responsive sizing based on viewport
   const isSmallViewport = viewportHeight < 700;
   const isSmallWeb = isWeb && screenWidth < 1280;
   const isMobile = !isWeb;

@@ -88,8 +88,6 @@ export default function WeightOnboarding() {
   });
   const { upsertUserProfile } = useUserData();
   const { userProfile } = useUserContext();
-
-  // Use refs to avoid recreating scroll handler
   const weightRef = useRef(weight);
   const unitRef = useRef(unit);
 
@@ -110,7 +108,6 @@ export default function WeightOnboarding() {
   const RULER_CENTER_OFFSET = screenWidth / 2;
   const [centerOffset, setCenterOffset] = useState<number>(RULER_CENTER_OFFSET);
 
-  // More aggressive scaling for devices < 1280
   const getScaleFactor = () => {
     if (!isWeb) return 1;
     if (screenWidth >= 1280) return 1;
@@ -120,11 +117,9 @@ export default function WeightOnboarding() {
   };
   const scaleFactor = getScaleFactor();
 
-  // Use window.innerHeight on web to account for browser chrome
   const viewportHeight =
     isWeb && typeof window !== "undefined" ? window.innerHeight : screenHeight;
 
-  // Responsive sizing based on viewport
   const isSmallViewport = viewportHeight < 700;
   const topMargin = isSmallViewport
     ? isWeb && screenWidth < 1280
@@ -134,7 +129,6 @@ export default function WeightOnboarding() {
   const titleSize = isSmallViewport ? 22 : 26;
   const subtitleSize = isSmallViewport ? 14 : 16;
 
-  // Handle dimension changes (window resize)
   useEffect(() => {
     const subscription = Dimensions.addEventListener("change", ({ window }) => {
       setDimensions({ width: window.width, height: window.height });
@@ -152,7 +146,6 @@ export default function WeightOnboarding() {
     return pounds * RULER_ITEM_WIDTH;
   };
 
-  // Preload existing weight data
   useEffect(() => {
     if (userProfile && userProfile.weight) {
       const loadedWeight = userProfile.weight;
@@ -161,7 +154,6 @@ export default function WeightOnboarding() {
       setWeight(loadedWeight);
       setUnit(loadedUnit);
 
-      // For web, set input value immediately
       if (isWeb) {
         if (loadedUnit === "kg") {
           setInputValue(Math.round(loadedWeight).toString());
@@ -171,7 +163,6 @@ export default function WeightOnboarding() {
         }
       }
 
-      // For mobile, scroll ruler to correct position
       if (!isWeb) {
         requestAnimationFrame(() => {
           const targetX = getOffsetForWeight(loadedWeight, loadedUnit);
@@ -186,7 +177,6 @@ export default function WeightOnboarding() {
     setBusy(true);
     setError(null);
     try {
-      // Save weight data to user profile if user is authenticated
       const { data: user } = await auth.getCurrentUser();
       if (user) {
         const result = await upsertUserProfile({
@@ -268,7 +258,6 @@ export default function WeightOnboarding() {
       newWeightKg = poundsClamped / 2.20462;
     }
 
-    // Only update if changed by at least 1 unit to reduce re-renders
     const currentWeight = weightRef.current;
     if (Math.abs(newWeightKg - currentWeight) >= 1) {
       setWeight(newWeightKg);
@@ -315,7 +304,6 @@ export default function WeightOnboarding() {
     }
   };
 
-  // Update web input when weight or unit changes
   useEffect(() => {
     if (isWeb) {
       if (weight > 0) {
@@ -337,7 +325,6 @@ export default function WeightOnboarding() {
     setUnit(newUnit);
 
     if (!isWeb && currentWeight > 0) {
-      // Use requestAnimationFrame for smoother transition
       requestAnimationFrame(() => {
         requestAnimationFrame(() => {
           const targetX = getOffsetForWeight(currentWeight, newUnit);
@@ -400,7 +387,6 @@ export default function WeightOnboarding() {
               showsVerticalScrollIndicator={false}
               keyboardShouldPersistTaps="handled"
             >
-              {/* Header Section */}
               <View style={{ marginTop: topMargin, marginBottom: 24 }}>
                 <Text
                   style={{
@@ -427,7 +413,6 @@ export default function WeightOnboarding() {
                 </Text>
               </View>
 
-              {/* Unit Switcher */}
               <View
                 style={{
                   flexDirection: "row",
@@ -475,7 +460,6 @@ export default function WeightOnboarding() {
                 </TouchableOpacity>
               </View>
 
-              {/* Weight Display */}
               <View
                 style={{
                   alignItems: "center",
@@ -496,7 +480,6 @@ export default function WeightOnboarding() {
                 </Text>
               </View>
 
-              {/* Ruler or Web Input */}
               {isWeb ? (
                 <View
                   style={{
@@ -609,7 +592,6 @@ export default function WeightOnboarding() {
               )}
             </ScrollView>
 
-            {/* Fixed Continue Button at Bottom */}
             <View style={{ paddingBottom: isSmallViewport ? 0 : 8 }}>
               <TouchableOpacity
                 disabled={busy || !(weight > 0)}

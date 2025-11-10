@@ -21,7 +21,6 @@ import { auth } from "../../hooks/useAuth";
 import Toast, { ToastProps } from "../../components/Toast";
 import { useMobileWebRedirect } from "../../hooks/useMobileWebRedirect";
 import { useUserData } from "../../hooks/useUserData";
-import { supabase } from "../../utils/supabase";
 
 interface ToastState extends Omit<ToastProps, "onDismiss"> {
   id: number;
@@ -46,7 +45,6 @@ export default function LoginScreen() {
   const [keyboardHeight, setKeyboardHeight] = useState(0);
   const [toasts, setToasts] = useState<ToastState[]>([]);
   const toastIdRef = useRef(0);
-  const { fetchUserProfile } = useUserData();
 
   useMobileWebRedirect();
 
@@ -108,7 +106,6 @@ export default function LoginScreen() {
     if (Platform.OS === "web" && typeof document !== "undefined") {
       const style = document.createElement("style");
       style.textContent = `
-        /* Remove autofill background color */
         input:-webkit-autofill,
         input:-webkit-autofill:hover,
         input:-webkit-autofill:focus,
@@ -119,19 +116,16 @@ export default function LoginScreen() {
           box-shadow: inset 0 0 20px 20px white !important;
         }
         
-        /* Remove focus outline rings */
         input:focus,
         textarea:focus,
         select:focus {
           outline: none !important;
         }
         
-        /* Prevent blue highlight on tap for mobile web */
         * {
           -webkit-tap-highlight-color: transparent;
         }
         
-        /* Remove password reveal eye icon (Edge, Chrome, Safari) */
         input[type="password"]::-ms-reveal,
         input[type="password"]::-ms-clear {
           display: none !important;
@@ -198,7 +192,6 @@ export default function LoginScreen() {
         showToast("error", "Login Failed", response.message);
         setLoading(false);
       }
-      // On success, allow AuthLayout/Index to handle navigation
     } catch (error: any) {
       showToast(
         "error",

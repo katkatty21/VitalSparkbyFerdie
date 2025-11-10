@@ -101,7 +101,6 @@ export default function ForgotPasswordScreen() {
     if (Platform.OS === "web" && typeof document !== "undefined") {
       const style = document.createElement("style");
       style.textContent = `
-        /* Remove autofill background color */
         input:-webkit-autofill,
         input:-webkit-autofill:hover,
         input:-webkit-autofill:focus,
@@ -112,14 +111,12 @@ export default function ForgotPasswordScreen() {
           box-shadow: inset 0 0 20px 20px white !important;
         }
         
-        /* Remove focus outline rings */
         input:focus,
         textarea:focus,
         select:focus {
           outline: none !important;
         }
         
-        /* Prevent blue highlight on tap for mobile web */
         * {
           -webkit-tap-highlight-color: transparent;
         }

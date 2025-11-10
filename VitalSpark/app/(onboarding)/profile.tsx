@@ -107,7 +107,6 @@ export default function ProfileOnboarding() {
   const titleSize = isSmallViewport ? 22 : 26;
   const subtitleSize = isSmallViewport ? 14 : 16;
 
-  // Handle dimension changes (window resize)
   useEffect(() => {
     const subscription = Dimensions.addEventListener("change", ({ window }) => {
       setDimensions({ width: window.width, height: window.height });
@@ -134,7 +133,6 @@ export default function ProfileOnboarding() {
     }
   }, [userProfile]);
 
-  // Create a supportive affirmation locally (no remote calls)
   useEffect(() => {
     if (selectedGender && (fullName.trim() || nickname.trim())) {
       const userProfileData = {
@@ -162,7 +160,6 @@ export default function ProfileOnboarding() {
     setBusy(true);
     setError(null);
     try {
-      // Save profile data to user profile if user is authenticated
       const { data: user } = await auth.getCurrentUser();
       if (user) {
         const result = await upsertUserProfile({
@@ -257,7 +254,6 @@ export default function ProfileOnboarding() {
               showsVerticalScrollIndicator={false}
               keyboardShouldPersistTaps="handled"
             >
-              {/* Header Section */}
               <View style={{ marginTop: topMargin, marginBottom: 24 }}>
                 <Text
                   style={{
@@ -296,7 +292,6 @@ export default function ProfileOnboarding() {
                 )}
               </View>
 
-              {/* Full Name Input */}
               <View style={{ marginBottom: 20 }}>
                 <Text
                   style={{
@@ -351,7 +346,6 @@ export default function ProfileOnboarding() {
                 </View>
               </View>
 
-              {/* Nickname Input */}
               <View style={{ marginBottom: 24 }}>
                 <Text
                   style={{
@@ -406,7 +400,6 @@ export default function ProfileOnboarding() {
                 </View>
               </View>
 
-              {/* Age Range Selection */}
               <View style={{ marginBottom: 24 }}>
                 <Text
                   style={{
@@ -483,7 +476,6 @@ export default function ProfileOnboarding() {
                 </View>
               </View>
 
-              {/* Gender Selection */}
               <View style={{ marginBottom: 24 }}>
                 <Text
                   style={{
@@ -558,7 +550,6 @@ export default function ProfileOnboarding() {
                 </View>
               </View>
 
-              {/* Affirmation */}
               {affirmation && (
                 <Animated.View
                   style={{
@@ -583,7 +574,6 @@ export default function ProfileOnboarding() {
                 </Animated.View>
               )}
 
-              {/* Continue Button */}
               <TouchableOpacity
                 disabled={busy || !isValid}
                 onPress={handleContinue}
