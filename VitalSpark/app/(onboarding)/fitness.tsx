@@ -19,7 +19,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useOnboardingHeader } from "../../contexts/OnboardingHeaderContext";
 import { generateFitnessAffirmations } from "../../lib/huggingface";
-import { useMobileWebRedirect } from "@/hooks/useMobileWebRedirect";
+import { useDesktopWebRedirect } from "@/hooks/useMobileWebRedirect";
 import { useUserData } from "../../hooks/useUserData";
 import { useUserContext } from "../../contexts/UserContext";
 import { auth } from "../../hooks/useAuth";
@@ -136,7 +136,7 @@ export default function FitnessOnboarding() {
   const scrollViewRef = useRef<ScrollView>(null);
   const [customEquipmentInputY, setCustomEquipmentInputY] = useState(0);
 
-  useMobileWebRedirect();
+  useDesktopWebRedirect();
 
   const screenWidth = dimensions.width;
   const screenHeight = dimensions.height;

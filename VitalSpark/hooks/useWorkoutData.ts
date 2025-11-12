@@ -3,7 +3,6 @@ import { supabase } from "../utils/supabase";
 import {
   WorkoutTag,
   WorkoutPlan,
-  WorkoutPlanTag,
   WorkoutPlanExercise,
   WorkoutPlanExerciseDetails,
   WorkoutPlanWithTags,

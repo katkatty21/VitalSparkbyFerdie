@@ -20,7 +20,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { auth } from "../../hooks/useAuth";
 import Toast, { ToastProps } from "../../components/Toast";
 import Dialog from "../../components/Dialog";
-import { useMobileWebRedirect } from "../../hooks/useMobileWebRedirect";
+import { useDesktopWebRedirect } from "../../hooks/useMobileWebRedirect";
 
 interface ToastState extends Omit<ToastProps, "onDismiss"> {
   id: number;
@@ -58,7 +58,7 @@ export default function SignUpScreen() {
   });
   const [passwordsMatch, setPasswordsMatch] = useState(false);
 
-  useMobileWebRedirect();
+  useDesktopWebRedirect();
 
   useEffect(() => {
     setPasswordRequirements({

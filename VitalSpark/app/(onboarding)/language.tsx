@@ -20,7 +20,7 @@ import { generateOnboardingAffirmations } from "../../lib/huggingface";
 import { useUserData } from "../../hooks/useUserData";
 import { useUserContext } from "../../contexts/UserContext";
 import { auth } from "../../hooks/useAuth";
-import { useMobileWebRedirect } from "@/hooks/useMobileWebRedirect";
+import { useDesktopWebRedirect } from "@/hooks/useMobileWebRedirect";
 
 const bgImage = require("../../assets/images/Onboarding_background.jpg");
 
@@ -51,7 +51,7 @@ export default function LanguageOnboarding() {
   const { upsertUserProfile, upsertUserRole } = useUserData();
   const { userProfile } = useUserContext();
 
-  useMobileWebRedirect();
+  useDesktopWebRedirect();
 
   const screenWidth = dimensions.width;
   const screenHeight = dimensions.height;

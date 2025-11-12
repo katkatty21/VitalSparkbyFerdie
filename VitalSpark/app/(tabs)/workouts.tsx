@@ -553,42 +553,6 @@ export default function WorkoutsScreen() {
                                 </View>
                               )}
                             </View>
-                            <TouchableOpacity
-                              style={styles.playButton}
-                              onPress={() => {
-                                if (isLocked) {
-                                  showPlanDialog({
-                                    showAllPlans: false,
-                                    highlightTier:
-                                      tierCode === "premium"
-                                        ? "premium"
-                                        : "pro",
-                                    onPlanSelect: (
-                                      planCode: string,
-                                      tier: PlanTier
-                                    ) => {
-                                      console.log(
-                                        "Selected plan:",
-                                        planCode,
-                                        tier
-                                      );
-                                      // TODO: Navigate to payment/subscription page
-                                    },
-                                  });
-                                  return;
-                                }
-                                handleWorkoutPress(plan.id);
-                              }}
-                              activeOpacity={0.7}
-                              accessibilityRole="button"
-                              accessibilityLabel="Play workout"
-                            >
-                              <Ionicons
-                                name="play"
-                                size={Platform.OS === "web" ? 16 : 20}
-                                color="#ffffff"
-                              />
-                            </TouchableOpacity>
                           </View>
                         </View>
                       </ImageBackground>

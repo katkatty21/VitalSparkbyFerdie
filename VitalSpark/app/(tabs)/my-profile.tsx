@@ -1,8 +1,9 @@
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
+  ActivityIndicator,
   Alert,
   Dimensions,
   Modal,
@@ -16,10 +17,25 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useAuth } from "@/contexts/AuthContext";
 import { useUserContext } from "@/contexts/UserContext";
-import { useMobileWebRedirect } from "@/hooks/useMobileWebRedirect";
+import {
+  useDesktopWebRedirect,
+  useMobileWebRedirect,
+} from "@/hooks/useMobileWebRedirect";
+import { useUserData } from "@/hooks/useUserData";
 import Dialog from "@/components/Dialog";
+import Toast from "@/components/Toast";
+import { useTranslation } from "react-i18next";
+import i18n from "@/i18n";
+
+interface ToastMessage {
+  id: string;
+  type: "success" | "error";
+  title: string;
+  message: string;
+}
 
 interface SettingToggleProps {
   icon: keyof typeof Ionicons.glyphMap;
@@ -148,14 +164,20 @@ const SectionCard = ({ title, children }: SectionCardProps) => (
 const Divider = () => <View className="h-[1px] bg-gray-200 mx-3 my-0" />;
 
 export default function MyProfileScreen() {
+  const { t } = useTranslation("common");
   const { user, signOut } = useAuth();
-  const { userProfile, loadingState } = useUserContext();
+  const { userProfile, loadingState, refreshUserData } = useUserContext();
+  const { updateUserProfile } = useUserData();
 
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [darkModeEnabled, setDarkModeEnabled] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [bmiModalOpen, setBmiModalOpen] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [languageModalVisible, setLanguageModalVisible] = useState(false);
+  const [selectedLanguage, setSelectedLanguage] = useState<string>("");
+  const [savingLanguage, setSavingLanguage] = useState(false);
+  const [toasts, setToasts] = useState<ToastMessage[]>([]);
 
   const screenHeight = Dimensions.get("window").height;
   const screenWidth = Dimensions.get("window").width;
@@ -164,7 +186,62 @@ export default function MyProfileScreen() {
     isWeb && typeof window !== "undefined" ? window.innerHeight : screenHeight;
   const isSmallViewport = viewportHeight < 700 || screenWidth < 400;
 
-  useMobileWebRedirect();
+  useDesktopWebRedirect();
+
+  // Toast helper functions
+  const showToast = (
+    message: string,
+    type: "success" | "error" = "success"
+  ) => {
+    const title = type === "success" ? t("common.success") : t("common.error");
+
+    if (Platform.OS === "web") {
+      // Show toast notification on web
+      const newToast: ToastMessage = {
+        id: Date.now().toString(),
+        type,
+        title,
+        message,
+      };
+      setToasts((prev) => [...prev, newToast]);
+    } else {
+      // Show native alert on mobile
+      Alert.alert(title, message);
+    }
+  };
+
+  const dismissToast = (id: string) => {
+    setToasts((prev) => prev.filter((toast) => toast.id !== id));
+  };
+
+  // Helper function to save language to storage
+  const saveLanguageToStorage = async (language: string) => {
+    try {
+      if (Platform.OS === "web") {
+        // Save to localStorage for web
+        localStorage.setItem("i18nextLng", language);
+      } else {
+        // Save to AsyncStorage for mobile
+        await AsyncStorage.setItem("i18nextLng", language);
+      }
+    } catch (error) {
+      // Silently fail - language storage is not critical
+    }
+  };
+
+  // Synchronize i18n language with userProfile preferred language
+  useEffect(() => {
+    const syncLanguage = async () => {
+      if (
+        userProfile?.preferred_language &&
+        i18n.language !== userProfile.preferred_language
+      ) {
+        await i18n.changeLanguage(userProfile.preferred_language);
+        await saveLanguageToStorage(userProfile.preferred_language);
+      }
+    };
+    syncLanguage();
+  }, [userProfile?.preferred_language]);
 
   const calculateBMI = (): string | null => {
     const height = userProfile?.height;
@@ -201,25 +278,25 @@ export default function MyProfileScreen() {
     const bmiValue = parseFloat(bmi);
     if (bmiValue < 18.5) {
       return {
-        label: "Underweight",
+        label: t("profile.underweight"),
         color: "#3b82f6",
         bgColor: "#dbeafe",
       };
     } else if (bmiValue >= 18.5 && bmiValue <= 24.9) {
       return {
-        label: "Healthy Weight",
+        label: t("profile.healthyWeight"),
         color: "#10b981",
         bgColor: "#d1fae5",
       };
     } else if (bmiValue >= 25.0 && bmiValue <= 29.9) {
       return {
-        label: "Overweight",
+        label: t("profile.overweight"),
         color: "#f59e0b",
         bgColor: "#fef3c7",
       };
     } else {
       return {
-        label: "Obesity",
+        label: t("profile.obesity"),
         color: "#ef4444",
         bgColor: "#fee2e2",
       };
@@ -259,7 +336,7 @@ export default function MyProfileScreen() {
 
   const handleSignOut = async () => {
     if (!user) {
-      Alert.alert("No user session", "You are not currently signed in.");
+      Alert.alert(t("common.error"), t("common.error"));
       return;
     }
 
@@ -268,16 +345,16 @@ export default function MyProfileScreen() {
       return;
     }
 
-    Alert.alert("Sign Out", "Are you sure you want to sign out?", [
-      { text: "Cancel", style: "cancel" },
+    Alert.alert(t("profile.signOut"), t("profile.signOutConfirm"), [
+      { text: t("common.cancel"), style: "cancel" },
       {
-        text: "Sign Out",
+        text: t("profile.signOut"),
         style: "destructive",
         onPress: async () => {
           try {
             await signOut();
           } catch (error) {
-            Alert.alert("Error", "Failed to sign out");
+            Alert.alert(t("common.error"), t("common.error"));
           }
         },
       },
@@ -288,7 +365,7 @@ export default function MyProfileScreen() {
     if (busy) return;
 
     if (!user) {
-      Alert.alert("No user session", "You are not currently signed in.");
+      Alert.alert(t("common.error"), t("common.error"));
       setConfirmOpen(false);
       return;
     }
@@ -297,7 +374,7 @@ export default function MyProfileScreen() {
       setBusy(true);
       await signOut();
     } catch (error) {
-      Alert.alert("Error", "Failed to sign out. Please try again.");
+      Alert.alert(t("common.error"), t("common.error"));
     } finally {
       setBusy(false);
       setConfirmOpen(false);
@@ -318,11 +395,80 @@ export default function MyProfileScreen() {
     return { bg: "#fef3c7", text: "#f59e0b" };
   };
 
+  const getLanguageDisplay = (langCode: string | undefined): string => {
+    if (!langCode) return t("languages.en");
+    const languageMap: Record<string, string> = {
+      en: t("languages.en"),
+      es: t("languages.es"),
+      fil: t("languages.fil"),
+    };
+    return languageMap[langCode] || t("languages.en");
+  };
+
+  const handleLanguageEdit = () => {
+    // Always use userProfile.preferred_language as source of truth
+    const currentLang = userProfile?.preferred_language || "en";
+    setSelectedLanguage(currentLang);
+    setLanguageModalVisible(true);
+  };
+
+  const handleSaveLanguage = async () => {
+    if (!user?.id || !selectedLanguage || savingLanguage) return;
+    try {
+      setSavingLanguage(true);
+
+      // Change i18n language immediately for UI update
+      await i18n.changeLanguage(selectedLanguage);
+
+      // Save to storage (AsyncStorage for mobile, localStorage for web)
+      await saveLanguageToStorage(selectedLanguage);
+
+      setLanguageModalVisible(false);
+      setSelectedLanguage("");
+      setSavingLanguage(false);
+
+      // Show success message and update database after user confirms
+      if (Platform.OS === "web") {
+        // Web: Update database immediately and show toast
+        const updateData = { preferred_language: selectedLanguage };
+        const result = await updateUserProfile(user.id, updateData);
+
+        if (!result.success) {
+          showToast(t("profile.languageUpdateError"), "error");
+        } else {
+          showToast(t("profile.languagePreferenceSaved"), "success");
+        }
+      } else {
+        // Mobile: Show alert first, then update database when user clicks OK
+        Alert.alert(t("common.success"), t("profile.languagePreferenceSaved"), [
+          {
+            text: t("common.ok"),
+            onPress: async () => {
+              // Update database after user dismisses alert (this will trigger refresh)
+              const updateData = { preferred_language: selectedLanguage };
+              const result = await updateUserProfile(user.id, updateData);
+
+              if (!result.success) {
+                Alert.alert(
+                  t("common.error"),
+                  t("profile.languageUpdateError")
+                );
+              }
+            },
+          },
+        ]);
+      }
+    } catch (error) {
+      setSavingLanguage(false);
+      showToast(t("profile.languageUpdateError"), "error");
+    }
+  };
+
   if (loadingState.isLoading) {
     return (
       <SafeAreaView className="flex-1 bg-slate-50">
         <View className="flex-1 justify-center items-center">
-          <Text className="text-base text-gray-500">Loading profile...</Text>
+          <Text className="text-base text-gray-500">{t("common.loading")}</Text>
         </View>
       </SafeAreaView>
     );
@@ -338,13 +484,13 @@ export default function MyProfileScreen() {
         className="px-6 pt-10 pb-[140px] rounded-b-[22px]"
       >
         <Text className="text-white/90 text-xs tracking-[2px] uppercase font-semibold">
-          ACCOUNT
+          {t("profile.account").toUpperCase()}
         </Text>
         <Text className="text-white text-[32px] font-extrabold mt-1">
-          My Profile
+          {t("profile.myProfile")}
         </Text>
         <Text className="text-teal-100 text-[13px] mt-1">
-          Manage your identity and preferences
+          {t("profile.manageIdentity")}
         </Text>
       </LinearGradient>
 
@@ -396,7 +542,7 @@ export default function MyProfileScreen() {
           <View className="flex-row justify-between mb-6">
             <View className="flex-1 items-center">
               <Text className="text-[11px] text-gray-500 uppercase tracking-[1px] mb-1">
-                HEIGHT
+                {t("profile.height").toUpperCase()}
               </Text>
               <Text className="text-base font-bold text-gray-900">
                 {formatHeight()}
@@ -405,7 +551,7 @@ export default function MyProfileScreen() {
             <View className="w-[1px] bg-gray-200 mx-2" />
             <View className="flex-1 items-center">
               <Text className="text-[11px] text-gray-500 uppercase tracking-[1px] mb-1">
-                WEIGHT
+                {t("profile.weight").toUpperCase()}
               </Text>
               <Text className="text-base font-bold text-gray-900">
                 {formatWeight()}
@@ -415,7 +561,7 @@ export default function MyProfileScreen() {
             <View className="flex-1 items-center">
               <View className="flex-row items-center mb-1">
                 <Text className="text-[11px] text-gray-500 uppercase tracking-[1px]">
-                  BMI
+                  {t("profile.bmi").toUpperCase()}
                 </Text>
                 {calculateBMI() && (
                   <Pressable
@@ -474,7 +620,7 @@ export default function MyProfileScreen() {
                     adjustsFontSizeToFit={true}
                     minimumFontScale={0.8}
                   >
-                    Manage Profile
+                    {t("profile.manageProfile")}
                   </Text>
                 </View>
               </LinearGradient>
@@ -506,7 +652,7 @@ export default function MyProfileScreen() {
                       adjustsFontSizeToFit={true}
                       minimumFontScale={0.8}
                     >
-                      Sign Out
+                      {t("profile.signOut")}
                     </Text>
                   </View>
                 </LinearGradient>
@@ -516,62 +662,72 @@ export default function MyProfileScreen() {
         </View>
 
         {/* PREFERENCES */}
-        <SectionCard title="PREFERENCES">
+        <SectionCard title={t("profile.preferences").toUpperCase()}>
           <SettingToggle
             icon="notifications"
-            title="Push Notifications"
-            description="Receive workout reminders and updates"
+            title={t("profile.pushNotifications")}
+            description={t("profile.receiveWorkoutReminders")}
             value={notificationsEnabled}
             onValueChange={setNotificationsEnabled}
           />
           <Divider />
           <SettingToggle
             icon="moon"
-            title="Dark Mode"
-            description="Use dark theme across the app"
+            title={t("profile.darkMode")}
+            description={t("profile.useDarkTheme")}
             value={darkModeEnabled}
             onValueChange={setDarkModeEnabled}
+          />
+          <Divider />
+          <SettingItem
+            icon="language"
+            title={t("profile.language")}
+            description={getLanguageDisplay(userProfile?.preferred_language)}
+            onPress={handleLanguageEdit}
           />
         </SectionCard>
 
         {/* SUPPORT */}
-        <SectionCard title="SUPPORT">
+        <SectionCard title={t("profile.support").toUpperCase()}>
           <SettingItem
             icon="help-circle"
-            title="Help Center"
-            description="Get answers to your questions"
+            title={t("profile.helpCenter")}
+            description={t("profile.getAnswersToQuestions")}
             onPress={() => {
-              Alert.alert("Coming Soon", "Help Center will be available soon");
+              Alert.alert(t("profile.comingSoon"), t("profile.helpCenterSoon"));
             }}
           />
           <Divider />
           <SettingItem
             icon="chatbubble-ellipses"
-            title="Contact Support"
-            description="Get help from our team"
+            title={t("profile.contactSupport")}
+            description={t("profile.getHelpFromTeam")}
             onPress={() => {
-              Alert.alert("Coming Soon", "Support chat will be available soon");
+              Alert.alert(
+                t("profile.comingSoon"),
+                t("profile.supportChatSoon")
+              );
             }}
           />
           <Divider />
           <SettingItem
             icon="star"
-            title="Rate VitalSpark"
-            description="Share your feedback with us"
+            title={t("profile.rateVitalSpark")}
+            description={t("profile.shareYourFeedback")}
             onPress={() => {
               Alert.alert(
-                "Thank You!",
-                "We appreciate your feedback and support"
+                t("profile.thankYou"),
+                t("profile.appreciateFeedback")
               );
             }}
           />
         </SectionCard>
 
         {/* ABOUT */}
-        <SectionCard title="ABOUT">
+        <SectionCard title={t("profile.about").toUpperCase()}>
           <SettingItem
             icon="information-circle"
-            title="App Version"
+            title={t("profile.appVersion")}
             description="1.0.0"
             onPress={() => {}}
             showChevron={false}
@@ -579,23 +735,17 @@ export default function MyProfileScreen() {
           <Divider />
           <SettingItem
             icon="document-text"
-            title="Terms of Service"
+            title={t("profile.termsOfService")}
             onPress={() => {
-              Alert.alert(
-                "Coming Soon",
-                "Terms of Service will be available soon"
-              );
+              Alert.alert(t("profile.comingSoon"), t("profile.termsSoon"));
             }}
           />
           <Divider />
           <SettingItem
             icon="shield-checkmark"
-            title="Privacy Policy"
+            title={t("profile.privacyPolicy")}
             onPress={() => {
-              Alert.alert(
-                "Coming Soon",
-                "Privacy Policy will be available soon"
-              );
+              Alert.alert(t("profile.comingSoon"), t("profile.privacySoon"));
             }}
           />
         </SectionCard>
@@ -612,9 +762,11 @@ export default function MyProfileScreen() {
         showCloseButton={!busy}
       >
         <View>
-          <Text className="text-lg font-bold text-gray-900">Sign Out</Text>
+          <Text className="text-lg font-bold text-gray-900">
+            {t("profile.signOut")}
+          </Text>
           <Text className="text-gray-600 mt-1.5">
-            Are you sure you want to sign out?
+            {t("profile.signOutConfirm")}
           </Text>
           <View className="flex-row justify-end mt-4">
             <Pressable
@@ -622,7 +774,9 @@ export default function MyProfileScreen() {
               onPress={() => setConfirmOpen(false)}
               className="py-2.5 px-4 rounded-xl border border-gray-200 bg-white"
             >
-              <Text className="text-gray-900 font-semibold">Cancel</Text>
+              <Text className="text-gray-900 font-semibold">
+                {t("common.cancel")}
+              </Text>
             </Pressable>
             <Pressable
               disabled={busy}
@@ -631,7 +785,7 @@ export default function MyProfileScreen() {
               style={{ backgroundColor: busy ? "#f87171" : "#ef4444" }}
             >
               <Text className="text-white font-bold">
-                {busy ? "Signing Out..." : "Sign Out"}
+                {busy ? t("profile.signingOut") : t("profile.signOut")}
               </Text>
             </Pressable>
           </View>
@@ -721,7 +875,8 @@ export default function MyProfileScreen() {
                     color: "#111827",
                   }}
                 >
-                  Your BMI Result
+                  {t("profile.bmi")}{" "}
+                  {t("common.result", { defaultValue: "Result" })}
                 </Text>
                 <Text
                   style={{
@@ -730,7 +885,7 @@ export default function MyProfileScreen() {
                     marginTop: 2,
                   }}
                 >
-                  Body Mass Index
+                  {t("profile.bodyMassIndex")}
                 </Text>
               </View>
             </View>
@@ -765,7 +920,8 @@ export default function MyProfileScreen() {
                       fontWeight: "600",
                     }}
                   >
-                    BMI Score
+                    {t("profile.bmi")}{" "}
+                    {t("common.score", { defaultValue: "Score" })}
                   </Text>
                 </View>
 
@@ -785,7 +941,7 @@ export default function MyProfileScreen() {
                       marginBottom: 8,
                     }}
                   >
-                    Classification
+                    {t("profile.classification")}
                   </Text>
                   <View
                     style={{
@@ -864,7 +1020,7 @@ export default function MyProfileScreen() {
                       marginBottom: 12,
                     }}
                   >
-                    BMI Ranges
+                    {t("profile.bmiRanges")}
                   </Text>
                   <View style={{ rowGap: 8 }}>
                     <View
@@ -886,7 +1042,7 @@ export default function MyProfileScreen() {
                           flex: 1,
                         }}
                       >
-                        Underweight
+                        {t("profile.underweight")}
                       </Text>
                       <Text
                         style={{
@@ -917,7 +1073,7 @@ export default function MyProfileScreen() {
                           flex: 1,
                         }}
                       >
-                        Healthy Weight
+                        {t("profile.healthyWeight")}
                       </Text>
                       <Text
                         style={{
@@ -948,7 +1104,7 @@ export default function MyProfileScreen() {
                           flex: 1,
                         }}
                       >
-                        Overweight
+                        {t("profile.overweight")}
                       </Text>
                       <Text
                         style={{
@@ -979,7 +1135,7 @@ export default function MyProfileScreen() {
                           flex: 1,
                         }}
                       >
-                        Obesity
+                        {t("profile.obesity")}
                       </Text>
                       <Text
                         style={{
@@ -1022,13 +1178,217 @@ export default function MyProfileScreen() {
                     color: "#fff",
                   }}
                 >
-                  Got it
+                  {t("common.ok")}
                 </Text>
               </TouchableOpacity>
             </View>
           </View>
         </View>
       </Modal>
+
+      {/* Language Selection Modal */}
+      <Modal
+        visible={languageModalVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setLanguageModalVisible(false)}
+      >
+        <Pressable
+          onPress={() => setLanguageModalVisible(false)}
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: "rgba(0,0,0,0.5)",
+          }}
+        />
+        <View
+          style={{
+            flex: 1,
+            alignItems: "center",
+            justifyContent: "center",
+            padding: 20,
+          }}
+        >
+          <View
+            style={{
+              backgroundColor: "#fff",
+              borderRadius: 20,
+              width: "100%",
+              maxWidth: 400,
+              padding: 20,
+              borderWidth: 1,
+              borderColor: "#e5e7eb",
+              ...(Platform.OS === "web"
+                ? { boxShadow: "0 20px 50px rgba(0,0,0,0.3)" as any }
+                : {
+                    shadowColor: "#000",
+                    shadowOpacity: 0.3,
+                    shadowRadius: 15,
+                    shadowOffset: { width: 0, height: 8 },
+                    elevation: 15,
+                  }),
+            }}
+          >
+            <Text
+              style={{
+                fontSize: 18,
+                fontWeight: "700",
+                color: "#111827",
+                marginBottom: 20,
+                textAlign: "center",
+              }}
+            >
+              {t("profile.selectLanguage")}
+            </Text>
+            <View style={{ marginBottom: 20 }}>
+              {[
+                { value: "en", label: t("languages.en") },
+                { value: "es", label: t("languages.es") },
+                { value: "fil", label: t("languages.fil") },
+              ].map((language) => (
+                <TouchableOpacity
+                  key={language.value}
+                  onPress={() => setSelectedLanguage(language.value)}
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    paddingVertical: 12,
+                    paddingHorizontal: 16,
+                    borderRadius: 12,
+                    marginBottom: 8,
+                    backgroundColor:
+                      selectedLanguage === language.value
+                        ? "#f0fdfa"
+                        : "#f9fafb",
+                    borderWidth: 1,
+                    borderColor:
+                      selectedLanguage === language.value
+                        ? "#14b8a6"
+                        : "#e5e7eb",
+                  }}
+                >
+                  <View
+                    style={{
+                      width: 20,
+                      height: 20,
+                      borderRadius: 10,
+                      borderWidth: 2,
+                      borderColor:
+                        selectedLanguage === language.value
+                          ? "#14b8a6"
+                          : "#d1d5db",
+                      marginRight: 12,
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
+                  >
+                    {selectedLanguage === language.value && (
+                      <View
+                        style={{
+                          width: 10,
+                          height: 10,
+                          borderRadius: 5,
+                          backgroundColor: "#14b8a6",
+                        }}
+                      />
+                    )}
+                  </View>
+                  <Text
+                    style={{
+                      fontSize: 16,
+                      fontWeight: "500",
+                      color:
+                        selectedLanguage === language.value
+                          ? "#0f766e"
+                          : "#374151",
+                    }}
+                  >
+                    {language.label}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+            <View
+              style={{
+                flexDirection: "row",
+                justifyContent: "flex-end",
+                gap: 12,
+              }}
+            >
+              <TouchableOpacity
+                onPress={() => setLanguageModalVisible(false)}
+                style={{
+                  paddingHorizontal: 20,
+                  paddingVertical: 10,
+                  borderRadius: 12,
+                  backgroundColor: "#f3f4f6",
+                }}
+              >
+                <Text
+                  style={{
+                    fontSize: 16,
+                    fontWeight: "600",
+                    color: "#374151",
+                  }}
+                >
+                  {t("common.cancel")}
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={handleSaveLanguage}
+                disabled={savingLanguage}
+                style={{
+                  borderRadius: 12,
+                  overflow: "hidden",
+                  opacity: savingLanguage ? 0.7 : 1,
+                  minWidth: 80,
+                }}
+              >
+                <LinearGradient
+                  colors={["#0f766e", "#14b8a6"]}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                  style={{
+                    paddingHorizontal: 20,
+                    paddingVertical: 10,
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  {savingLanguage ? (
+                    <ActivityIndicator size="small" color="#fff" />
+                  ) : (
+                    <Text
+                      style={{
+                        fontSize: 16,
+                        fontWeight: "600",
+                        color: "#fff",
+                      }}
+                    >
+                      {t("common.save")}
+                    </Text>
+                  )}
+                </LinearGradient>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Toast Notifications (Web only) */}
+      {toasts.map((toast, index) => (
+        <Toast
+          key={toast.id}
+          type={toast.type}
+          title={toast.title}
+          message={toast.message}
+          onDismiss={() => dismissToast(toast.id)}
+          index={index}
+        />
+      ))}
     </SafeAreaView>
   );
 }

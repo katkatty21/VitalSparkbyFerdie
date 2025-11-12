@@ -22,7 +22,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useWorkoutData } from "../../hooks/useWorkoutData";
-import { useMobileWebRedirect } from "@/hooks/useMobileWebRedirect";
+import { useDesktopWebRedirect } from "@/hooks/useMobileWebRedirect";
 import { supabase } from "../../utils/supabase";
 import type {
   WorkoutPlanFull,
@@ -41,7 +41,7 @@ export default function WorkoutDetailsScreen() {
   // Shimmer animation for skeleton
   const shimmerAnim = useRef(new Animated.Value(0)).current;
 
-  useMobileWebRedirect();
+  useDesktopWebRedirect();
 
   // Start shimmer animation
   useEffect(() => {
@@ -576,7 +576,6 @@ const ExerciseRow = React.memo(
             </View>
           )}
         </View>
-        <Ionicons name="chevron-forward-outline" size={22} color="#9ca3af" />
       </TouchableOpacity>
     );
   }

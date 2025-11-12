@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { UserProvider } from "../contexts/UserContext";
 import { AuthProvider } from "../contexts/AuthContext";
 import { WorkoutProvider } from "../contexts/WorkoutContext";
+import { UserWorkoutProvider } from "../contexts/UserWorkoutContext";
 import { PlansProvider, usePlansContext } from "../contexts/PlansContext";
 import { useProtectedRoute } from "../hooks/useProtectedRoute";
 import { initI18n } from "../i18n";
@@ -60,7 +61,9 @@ export default function RootLayout() {
       <UserProvider>
         <PlansProvider>
           <WorkoutProvider>
-            <RootLayoutNav />
+            <UserWorkoutProvider>
+              <RootLayoutNav />
+            </UserWorkoutProvider>
           </WorkoutProvider>
         </PlansProvider>
       </UserProvider>

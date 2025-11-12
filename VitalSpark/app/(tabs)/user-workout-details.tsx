@@ -1,9 +1,9 @@
 import { View, Text, StyleSheet } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useMobileWebRedirect } from "@/hooks/useMobileWebRedirect";
+import { useDesktopWebRedirect } from "@/hooks/useMobileWebRedirect";
 
 export default function UserWorkoutDetailsScreen() {
-  useMobileWebRedirect();
+  useDesktopWebRedirect();  
 
   return (
     <SafeAreaView style={styles.container}>
@@ -37,4 +37,3 @@ const styles = StyleSheet.create({
     color: "#64748b",
   },
 });
-

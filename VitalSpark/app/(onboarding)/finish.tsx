@@ -15,7 +15,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { generateOnboardingCompletionMessage } from "../../lib/huggingface";
-import { useMobileWebRedirect } from "@/hooks/useMobileWebRedirect";
+import { useDesktopWebRedirect } from "@/hooks/useMobileWebRedirect";
 import { useUserData } from "../../hooks/useUserData";
 import { useUserContext } from "../../contexts/UserContext";
 import { auth } from "../../hooks/useAuth";
@@ -40,7 +40,7 @@ export default function FinishOnboarding() {
     height: Dimensions.get("window").height,
   });
 
-  useMobileWebRedirect();
+  useDesktopWebRedirect();
 
   const screenWidth = dimensions.width;
   const screenHeight = dimensions.height;

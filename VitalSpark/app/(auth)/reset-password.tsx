@@ -21,7 +21,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useURL } from "expo-linking";
 import { auth } from "../../hooks/useAuth";
 import Toast, { ToastProps } from "../../components/Toast";
-import { useMobileWebRedirect } from "../../hooks/useMobileWebRedirect";
+import { useDesktopWebRedirect } from "../../hooks/useMobileWebRedirect";
 import { supabase } from "../../utils/supabase";
 
 interface ToastState extends Omit<ToastProps, "onDismiss"> {
@@ -59,7 +59,7 @@ export default function ResetPasswordScreen() {
   });
   const [passwordsMatch, setPasswordsMatch] = useState(false);
 
-  useMobileWebRedirect();
+  useDesktopWebRedirect();
 
   useEffect(() => {
     setPasswordRequirements({

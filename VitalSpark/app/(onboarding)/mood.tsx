@@ -17,7 +17,7 @@ import { generateOnboardingAffirmations } from "../../lib/huggingface";
 import { useUserData } from "../../hooks/useUserData";
 import { useUserContext } from "../../contexts/UserContext";
 import { auth } from "../../hooks/useAuth";
-import { useMobileWebRedirect } from "@/hooks/useMobileWebRedirect";
+import { useDesktopWebRedirect } from "@/hooks/useMobileWebRedirect";
 
 interface MoodOption {
   code: string;
@@ -85,7 +85,7 @@ export default function MoodOnboarding() {
   const isWeb = Platform.OS === "web";
   const isLoadingProfile = initializing || loadingState.isLoading;
 
-  useMobileWebRedirect();
+  useDesktopWebRedirect();
 
   const getScaleFactor = () => {
     if (!isWeb) return 1;
@@ -514,7 +514,7 @@ export default function MoodOnboarding() {
                   </View>
                 )}
               </View>
-                    
+
               <View style={{ paddingBottom: isSmallViewport ? 0 : 8 }}>
                 <TouchableOpacity
                   disabled={busy || !selectedMood || isLoadingProfile}

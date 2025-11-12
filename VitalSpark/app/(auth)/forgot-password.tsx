@@ -19,7 +19,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { auth } from "../../hooks/useAuth";
 import Toast, { ToastProps } from "../../components/Toast";
-import { useMobileWebRedirect } from "../../hooks/useMobileWebRedirect";
+import { useDesktopWebRedirect } from "../../hooks/useMobileWebRedirect";
 
 interface ToastState extends Omit<ToastProps, "onDismiss"> {
   id: number;
@@ -41,7 +41,7 @@ export default function ForgotPasswordScreen() {
   const [toasts, setToasts] = useState<ToastState[]>([]);
   const toastIdRef = useRef(0);
 
-  useMobileWebRedirect();
+  useDesktopWebRedirect();
 
   const isSmallScreen = useMemo(() => {
     if (Platform.OS !== "web") return false;
